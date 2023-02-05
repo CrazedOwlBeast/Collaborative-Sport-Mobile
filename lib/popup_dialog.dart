@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:beacon_broadcast/beacon_broadcast.dart';
 
 class PopupDialog extends StatelessWidget {
 
-  String buttonType;
   VoidCallback continueCallBack;
+  String buttonType;
+  final FlutterReactiveBle bluetooth;
 
-  PopupDialog(this.continueCallBack, this.buttonType, {super.key});
+  PopupDialog(this.continueCallBack, this.buttonType, this.bluetooth, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -205,9 +209,38 @@ class PopupDialog extends StatelessWidget {
       );
     }
 
+    // TODO: Display partners found in BLE scan and let user connect to them
+    // TODO: Add buttons dynamically for every partner found in scan
+    // TODO: Stop scanning if dialog is cancelled (not using red x)
+    // TODO: Check if Bluetooth is on
     if(buttonType == "connectPartners")
     {
-      // TODO: add buttons dynamically for every device found, no need to have all this code, but just here now for temp reasons
+      // Start advertising
+      BeaconBroadcast beaconBroadcast = BeaconBroadcast();
+      beaconBroadcast
+          .setUUID('48454C4C4F574F524C442D4852313034')  // 32 base-16 characters
+          .setMajorId(1)
+          .setMinorId(100)
+          .setTransmissionPower(-59) //optional
+          .setAdvertiseMode(AdvertiseMode.balanced) //Android-only, optional
+          .setIdentifier('com.example.myDeviceRegion') //iOS-only, optional
+          .setLayout(BeaconBroadcast.ALTBEACON_LAYOUT) //Android-only, optional
+          .setManufacturerId(0xCF23) //Android-only, optional
+          .start();
+
+      // Start scanning
+      StreamSubscription<DiscoveredDevice> bleScan = bluetooth.scanForDevices(withServices: [],
+          scanMode: ScanMode.lowLatency).listen((device) {
+
+        // Device info string printed to terminal for testing.
+        print("Name: " + device.name + "\n" +
+              "ID: " + device.id + "\n" +
+              "Manufacturer Data: " + device.manufacturerData.toString() + "\n" +
+              "RSSI: " + device.rssi.toString() + "\n" +
+              "Service Data: " + device.serviceData.toString() + "\n" +
+              "Service UUIDs: " + device.serviceUuids.toString() + "\n\n");
+      });
+
       return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: EdgeInsets.fromLTRB(30, 30, 30, 450),
@@ -238,7 +271,7 @@ class PopupDialog extends StatelessWidget {
                             )
                         ),
                         onPressed: () {
-                          //TODO Set exercise type to walking
+                          //TODO Connect to partner
                         },
                         child: Wrap(
                           spacing: 90,
@@ -266,6 +299,8 @@ class PopupDialog extends StatelessWidget {
                       mini: true,
                       backgroundColor: Colors.red,
                       onPressed: () {
+                        bleScan.cancel();  // Stop scanning.
+                        beaconBroadcast.stop();  // Stop advertising.
                         continueCallBack();
                       },
                       child: Icon(Icons.clear)

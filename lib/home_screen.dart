@@ -4,11 +4,29 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/monitor_connect.dart';
 import 'package:hello_world/partner_connect.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of the application.
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,10 +39,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
 
+  // Obtain FlutterReactiveBle instance for entire app.
+  final flutterReactiveBle = FlutterReactiveBle();
+
   @override
   void initState(){
     super.initState();
+    _getPermissions();  // TODO: Wait for permissions before getting location.
     _getUserLocation();
+  }
+
+  // Function to get permissions.
+  void _getPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.bluetoothAdvertise,
+      Permission.location,
+    ].request();
   }
 
   void _getUserLocation() async {
@@ -45,11 +77,26 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+  // Shows popup dialog when buttons are pressed.
   _onMapCreated(GoogleMapController controller) {
     setState(() {
       controller1.complete(controller);
     });
   }
+
+  _showDialog(BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
+    continueCallBack() => {
+      Navigator.of(context).pop()
+    };
+    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -60,11 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Container(
               color: Colors.green,
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.70, // map takes 70% of screen
+              width: screenWidth,
+              height: screenHeight * 0.70, // map takes 70% of screen
               child: Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
+                height: screenHeight,
+                width: screenWidth,
                 child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
                 Stack(
                   children: [
@@ -92,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                              _showDialog(context, "exerciseType");
+                              _showDialog(context, "exerciseType", flutterReactiveBle);
                             // Navigator.of(context).push(
                             //     MaterialPageRoute(builder: (context) => const ExerciseType()));
                           },
@@ -108,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                            _showDialog(context, "connectMonitors");
+                            _showDialog(context, "connectMonitors", flutterReactiveBle);
 
                             // Navigator.push(
                             //   context,
@@ -126,8 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
                           backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                         ),
-                        onPressed: () {
-                          _showDialog(context, "connectPartners");
+                        onPressed: () async {
+                          _showDialog(context, "connectPartners", flutterReactiveBle);
                           // Navigator.push(
                           //   context,
                           //   MaterialPageRoute(builder: (context) => const PartnerConnect()),
@@ -211,22 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-}
-
-
-_showDialog(BuildContext context, String buttonType)
-{
-  continueCallBack() => {
-    Navigator.of(context).pop()
-  };
-  PopupDialog  alert = PopupDialog(continueCallBack, buttonType);
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
 }
 
 
