@@ -43,7 +43,7 @@ dependencies:
   draggable_fab: ^0.1.4
   google_fonts:
   permission_handler: ^10.2.0
-  beacon_broadcast: ^0.3.1
+  flutter_ble_peripheral: ^1.1.1
 
 dev_dependencies:
   flutter_launcher_icons: "^0.11.0"

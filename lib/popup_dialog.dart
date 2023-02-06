@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:beacon_broadcast/beacon_broadcast.dart';
 
 class PopupDialog extends StatelessWidget {
 
@@ -215,100 +216,84 @@ class PopupDialog extends StatelessWidget {
     // TODO: Check if Bluetooth is on
     if(buttonType == "connectPartners")
     {
-      // Start advertising
-      BeaconBroadcast beaconBroadcast = BeaconBroadcast();
-      beaconBroadcast
-          .setUUID('48454C4C4F574F524C442D4852313034')  // 32 base-16 characters
-          .setMajorId(1)
-          .setMinorId(100)
-          .setTransmissionPower(-59) //optional
-          .setAdvertiseMode(AdvertiseMode.balanced) //Android-only, optional
-          .setIdentifier('com.example.myDeviceRegion') //iOS-only, optional
-          .setLayout(BeaconBroadcast.ALTBEACON_LAYOUT) //Android-only, optional
-          .setManufacturerId(0xCF23) //Android-only, optional
-          .start();
-
       // Start scanning
+      // MAC is used to connect but is random, need to scan for UUID
+      List<String> foundPartnersUUIDs = [];
       StreamSubscription<DiscoveredDevice> bleScan = bluetooth.scanForDevices(withServices: [],
           scanMode: ScanMode.lowLatency).listen((device) {
+            // Ignore if already seen during this scan.
+            bool newUUID = true;
+            for (String UUID in foundPartnersUUIDs) {
+              if (UUID == device.serviceUuids.toString()) {
+                newUUID = false;
+              }
+            }
+            if (newUUID == true) {
+              if (device.serviceUuids.toString() == "[48454c4c-4f57-4f52-4c44-2d4852313034]") {
+                print("Partner found!");
+              }
+              foundPartnersUUIDs.add(device.serviceUuids.toString());
+            }
+            // Device info string printed to terminal for testing.
+            if (device.serviceUuids.toString() == "[48454c4c-4f57-4f52-4c44-2d4852313034]") {
+              print("Partner found!");
+            }
+            print("Name: " + device.name + "\n" +
+                "ID: " + device.id + "\n" +
+                "Manufacturer Data: " + device.manufacturerData.toString() +
+                "\n" +
+                "RSSI: " + device.rssi.toString() + "\n" +
+                "Service Data: " + device.serviceData.toString() + "\n" +
+                "Service UUIDs: " + device.serviceUuids.toString() + "\n\n");
 
-        // Device info string printed to terminal for testing.
-        print("Name: " + device.name + "\n" +
-              "ID: " + device.id + "\n" +
-              "Manufacturer Data: " + device.manufacturerData.toString() + "\n" +
-              "RSSI: " + device.rssi.toString() + "\n" +
-              "Service Data: " + device.serviceData.toString() + "\n" +
-              "Service UUIDs: " + device.serviceUuids.toString() + "\n\n");
-      });
+          });  // End of BLE listener.
 
-      return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.fromLTRB(30, 30, 30, 450),
-          child: Stack(
-            alignment: Alignment.topCenter,
-            children: <Widget>[
-              Container(
-                width: double.infinity,
-                height: 600,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(45),
-                  color: Colors.black,
-                ),
-                padding: EdgeInsets.fromLTRB(10, 0, 20, 70),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(height: 20),
-                    Text("Select Partners:", style: GoogleFonts.openSans(color: Colors.white, fontSize: 20)),
-                    ElevatedButton(
-                        style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Color.fromRGBO(90, 90, 90, 0.5)),
-                            minimumSize: MaterialStateProperty.all<Size>(const Size(300, 60)),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                )
-                            )
-                        ),
-                        onPressed: () {
-                          //TODO Connect to partner
-                        },
-                        child: Wrap(
-                          spacing: 90,
-                          alignment: WrapAlignment.spaceEvenly,
-                          children: [
-                            const Icon(Icons.directions_walk_outlined, size: 50,),
-                            // Spacer(),
-                            Text('Walking', style: GoogleFonts.openSans(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600,
-                                height: 1.7
-                            )),
-                          ],
-                        )
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  width: 30,
-                  height: 30,
-                  top: 15,
-                  right: 15,
-                  child: FloatingActionButton(
-                      mini: true,
-                      backgroundColor: Colors.red,
-                      onPressed: () {
-                        bleScan.cancel();  // Stop scanning.
-                        beaconBroadcast.stop();  // Stop advertising.
-                        continueCallBack();
-                      },
-                      child: Icon(Icons.clear)
-                  ))
-            ],
-          )
-      );
-    }
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.fromLTRB(30, 30, 30, 450),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: <Widget>[
+          ListView.builder(
+            itemCount: foundPartnersUUIDs.length,
+            prototypeItem: const ListTile(
+                title: Text("[48454c4c-4f57-4f52-4c44-2d4852313034]")
+            ),
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(foundPartnersUUIDs[index]),
+              );
+            },
+          ),
+          Container(
+            width: double.infinity,
+            height: 600,
+            alignment: Alignment.bottomCenter,
+            decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(45),
+            color: Colors.black),
+            padding: EdgeInsets.fromLTRB(10, 0, 20, 70),
+          ),
+          Positioned(
+              width: 30,
+              height: 30,
+              top: 15,
+              right: 15,
+              child: FloatingActionButton(
+                  mini: true,
+                  backgroundColor: Colors.red,
+                  onPressed: () {
+                    continueCallBack();
+                    bleScan.cancel();
+                  },
+                  child: Icon(Icons.clear)
+              )
+          ),
+        ],
+      )
+    );
+  }
 
     throw Exception("bloop");
   }

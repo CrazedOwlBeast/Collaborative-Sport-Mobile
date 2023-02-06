@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ import 'package:hello_world/monitor_connect.dart';
 import 'package:hello_world/partner_connect.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+// import 'package:beacon_broadcast/beacon_broadcast.dart';
+import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,11 +45,74 @@ class _HomeScreenState extends State<HomeScreen> {
   // Obtain FlutterReactiveBle instance for entire app.
   final flutterReactiveBle = FlutterReactiveBle();
 
+  // Config for flutter_ble_peripheral
+  final FlutterBlePeripheral blePeripheral = FlutterBlePeripheral();
+  bool _isSupported = false;
+  // Data to be advertised.
+  final AdvertiseData advertiseData = AdvertiseData(
+    serviceUuid: '48454C4C-4F57-4F52-4C44-2D4852313034',
+    manufacturerId: 1234,
+    manufacturerData: Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 8, 8]),
+  );
+  // Settings for advertisement.
+  final AdvertiseSettings advertiseSettings = AdvertiseSettings(
+    advertiseMode: AdvertiseMode.advertiseModeLowLatency,
+    txPowerLevel: AdvertiseTxPower.advertiseTxPowerMedium,
+    timeout: 3000,
+  );
+  // More advertisement parameters
+  final AdvertiseSetParameters advertiseSetParameters = AdvertiseSetParameters(
+    connectable: true,
+    txPowerLevel: txPowerHigh,
+    interval: intervalMin,
+    legacyMode: false,
+    primaryPhy: 1,
+    // scannable: true,
+    // secondaryPhy: 13,
+    duration: 9999,
+    // maxExtendedAdvertisingEvents: 444,
+  );
+
+
   @override
   void initState(){
     super.initState();
-    _getPermissions();  // TODO: Wait for permissions before getting location.
+    _getPermissions();  // TODO: Wait for permissions before getting location. (affects first run)
     _getUserLocation();
+    initPlatformState();  // Config for flutter_ble_peripheral
+    // Start BLE advertisement.
+    // TODO: Not sure if we should broadcast all time?  Seems to stop broadcasting after awhile...
+    _toggleAdvertiseSet();
+
+  }
+
+  // Config for flutter_ble_peripheral
+  Future<void> initPlatformState() async {
+    final isSupported = await blePeripheral.isSupported;
+    setState(() {
+      _isSupported = isSupported;
+    });
+  }
+  // Function to start advertisement.  Not used.
+  Future<void> _toggleAdvertise() async {
+    if (await blePeripheral.isAdvertising) {
+      await blePeripheral.stop();
+    } else {
+
+      await blePeripheral.start(advertiseData: advertiseData,
+                                advertiseSettings: advertiseSettings);
+    }
+  }
+  // Function to start advertisement with extra parameters.  Disabled the toggle for now.
+  Future<void> _toggleAdvertiseSet() async {
+    // if (await blePeripheral.isAdvertising) {
+    //   await blePeripheral.stop();
+    // } else {
+      await blePeripheral.start(
+        advertiseData: advertiseData,
+        advertiseSetParameters: advertiseSetParameters,
+      );
+    // }
   }
 
   // Function to get permissions.
@@ -84,6 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Function to show dialog when action buttons are pressed.
+  // TODO: Make stateful?
   _showDialog(BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
     continueCallBack() => {
       Navigator.of(context).pop()
