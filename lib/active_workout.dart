@@ -16,6 +16,10 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     Completer<GoogleMapController> controller1 = Completer();
+    Duration duration = Duration();
+    Timer? timer;
+    double speed = 0.0;
+    int? heartrate;
 
     static LatLng? _initialPosition;
 
@@ -23,6 +27,23 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     void initState(){
       super.initState();
       _getUserLocation();
+      startTimer();
+      Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
+    }
+
+    void addTime() {
+      setState(() {
+        final seconds = duration.inSeconds + 1;
+        duration = Duration(seconds: seconds);
+      });
+    }
+
+    void startTimer() {
+      timer = Timer.periodic(const Duration(seconds: 1), (_) => addTime());
+    }
+
+    void setSpeed(double speed) {
+      this.speed = (this.speed + speed)/2;
     }
 
     void _getUserLocation() async {
@@ -51,6 +72,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     @override
     Widget build(BuildContext context) {
+      String twoDigits(int n) => n.toString().padLeft(2, '0');
+      String? hours,minutes,seconds;
+      hours = twoDigits(duration.inHours.remainder(60));
+      minutes = twoDigits(duration.inMinutes.remainder(60));
+      seconds = twoDigits(duration.inSeconds.remainder(60));
+
       return Scaffold(
         body: Container(
           height: MediaQuery.of(context).size.height,
@@ -85,6 +112,49 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     },
                     child: const Icon(Icons.arrow_back),
                   ),
+                ),
+                //Duration field
+                Positioned(
+                    bottom: 25,
+                    left: 25,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      child: Text(
+                          '$hours:$minutes:$seconds',
+                          textAlign: TextAlign.center,
+                      ),
+                    )
+                ),
+                //Speed field
+                Positioned(
+                    bottom: 25,
+                    left: 140,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      child: Text(
+                        '${speed.toStringAsFixed(2)}\nm/s',
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                ),
+                //Heart rate field
+                Positioned(
+                    bottom: 25,
+                    right: 60,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      child: Text(((){
+                        return '${heartrate==null ? "--" : '$heartrate'} \nbpm';
+                      })(),
+                      textAlign: TextAlign.center,
+                      ),
+                    )
                 )
               ],
             ),

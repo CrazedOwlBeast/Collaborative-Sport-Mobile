@@ -83,5 +83,10 @@
 	<string>YES</string>
 	<key>kTCCServiceMediaLibrary</key>
 	<string>media</string>
+	<key>UIApplicationSceneManifest</key>
+        <dict>
+            <key>UISceneConfigurations</key>
+            <dict/>
+        </dict>
 </dict>
 </plist>
