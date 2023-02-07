@@ -210,91 +210,11 @@ class PopupDialog extends StatelessWidget {
       );
     }
 
-    // TODO: Display partners found in BLE scan and let user connect to them
-    // TODO: Add buttons dynamically for every partner found in scan
-    // TODO: Stop scanning if dialog is cancelled (not using red x)
-    // TODO: Check if Bluetooth is on
+    // No longer used.
     if(buttonType == "connectPartners")
     {
-      // Start scanning
-      // MAC is used to connect but is random, need to scan for UUID
-      List<String> foundPartnersUUIDs = [];
-      StreamSubscription<DiscoveredDevice> bleScan = bluetooth.scanForDevices(withServices: [],
-          scanMode: ScanMode.lowLatency).listen((device) {
-            // Ignore if already seen during this scan.
-            bool newUUID = true;
-            for (String UUID in foundPartnersUUIDs) {
-              if (UUID == device.serviceUuids.toString()) {
-                newUUID = false;
-              }
-            }
-            if (newUUID == true) {
-              if (device.serviceUuids.toString() == "[48454c4c-4f57-4f52-4c44-2d4852313034]") {
-                print("Partner found!");
-              }
-              foundPartnersUUIDs.add(device.serviceUuids.toString());
-            }
-            // Device info string printed to terminal for testing.
-            if (device.serviceUuids.toString() == "[48454c4c-4f57-4f52-4c44-2d4852313034]") {
-              print("Partner found!");
-            }
-            print("Name: " + device.name + "\n" +
-                "ID: " + device.id + "\n" +
-                "Manufacturer Data: " + device.manufacturerData.toString() +
-                "\n" +
-                "RSSI: " + device.rssi.toString() + "\n" +
-                "Service Data: " + device.serviceData.toString() + "\n" +
-                "Service UUIDs: " + device.serviceUuids.toString() + "\n\n");
 
-          });  // End of BLE listener.
-
-
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.fromLTRB(30, 30, 30, 450),
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: <Widget>[
-          ListView.builder(
-            itemCount: foundPartnersUUIDs.length,
-            prototypeItem: const ListTile(
-                title: Text("[48454c4c-4f57-4f52-4c44-2d4852313034]")
-            ),
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(foundPartnersUUIDs[index]),
-              );
-            },
-          ),
-          Container(
-            width: double.infinity,
-            height: 600,
-            alignment: Alignment.bottomCenter,
-            decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(45),
-            color: Colors.black),
-            padding: EdgeInsets.fromLTRB(10, 0, 20, 70),
-          ),
-          Positioned(
-              width: 30,
-              height: 30,
-              top: 15,
-              right: 15,
-              child: FloatingActionButton(
-                  mini: true,
-                  backgroundColor: Colors.red,
-                  onPressed: () {
-                    continueCallBack();
-                    bleScan.cancel();
-                  },
-                  child: Icon(Icons.clear)
-              )
-          ),
-        ],
-      )
-    );
-  }
-
+    }
     throw Exception("bloop");
   }
 }

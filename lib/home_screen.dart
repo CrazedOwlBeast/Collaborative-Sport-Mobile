@@ -1,18 +1,87 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
+import 'package:hello_world/partner_connect.dart';
 import 'active_workout.dart';
 import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+class BluetoothAdvertiser {
+  final String uuid;
+  AdvertiseData advertiseData = AdvertiseData();
+  BluetoothAdvertiser(this.uuid);
+
+  // Config for flutter_ble_peripheral
+  final FlutterBlePeripheral blePeripheral = FlutterBlePeripheral();
+  bool _isSupported = false;
+
+  // Settings for advertisement.
+  final AdvertiseSettings advertiseSettings = AdvertiseSettings(
+    advertiseMode: AdvertiseMode.advertiseModeLowLatency,
+    txPowerLevel: AdvertiseTxPower.advertiseTxPowerMedium,
+    timeout: 3000,
+  );
+  // More advertisement parameters
+  final AdvertiseSetParameters advertiseSetParameters = AdvertiseSetParameters(
+    connectable: true,
+    txPowerLevel: txPowerHigh,
+    interval: intervalMin,
+    legacyMode: false,
+    primaryPhy: 1,
+    // scannable: true,
+    // secondaryPhy: 13,
+    duration: 9999,
+    // maxExtendedAdvertisingEvents: 444,
+  );
+  // Config for flutter_ble_peripheral
+  Future<void> initPlatformState() async {
+    final isSupported = await blePeripheral.isSupported;
+    //setState(() {
+    //  _isSupported = isSupported;
+    //});
+  }
+  // Function to start advertisement.  Not used.
+  Future<void> _toggleAdvertise() async {
+    if (await blePeripheral.isAdvertising) {
+      await blePeripheral.stop();
+    } else {
+
+      await blePeripheral.start(advertiseData: advertiseData,
+          advertiseSettings: advertiseSettings);
+    }
+  }
+  // Function to start advertisement with extra parameters.  Disabled the toggle for now.
+  Future<void> _toggleAdvertiseSet() async {
+    if (await blePeripheral.isAdvertising) {
+      await blePeripheral.stop();
+    } else {
+      await blePeripheral.start(
+        advertiseData: advertiseData,
+        advertiseSetParameters: advertiseSetParameters,
+      );
+    }
+  }
+
+  void setAdvertiseData(String uuid) {
+    advertiseData = AdvertiseData(
+      serviceUuid: uuid,
+      manufacturerId: 1234,
+      manufacturerData: Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 8, 8]),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -37,78 +106,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
-
-  // Obtain FlutterReactiveBle instance for entire app.
-  final flutterReactiveBle = FlutterReactiveBle();
-
-  // Config for flutter_ble_peripheral
-  final FlutterBlePeripheral blePeripheral = FlutterBlePeripheral();
-  bool _isSupported = false;
-  // Data to be advertised.
-  final AdvertiseData advertiseData = AdvertiseData(
-    serviceUuid: '48454C4C-4F57-4F52-4C44-2D4852313034',
-    manufacturerId: 1234,
-    manufacturerData: Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 8, 8]),
-  );
-  // Settings for advertisement.
-  final AdvertiseSettings advertiseSettings = AdvertiseSettings(
-    advertiseMode: AdvertiseMode.advertiseModeLowLatency,
-    txPowerLevel: AdvertiseTxPower.advertiseTxPowerMedium,
-    timeout: 3000,
-  );
-  // More advertisement parameters
-  final AdvertiseSetParameters advertiseSetParameters = AdvertiseSetParameters(
-    connectable: true,
-    txPowerLevel: txPowerHigh,
-    interval: intervalMin,
-    legacyMode: false,
-    primaryPhy: 1,
-    // scannable: true,
-    // secondaryPhy: 13,
-    duration: 9999,
-    // maxExtendedAdvertisingEvents: 444,
-  );
-
+  Timer? timer;
 
   @override
   void initState(){
     super.initState();
     _getPermissions();  // TODO: Wait for permissions before getting location. (affects first run)
     _getUserLocation();
-    initPlatformState();  // Config for flutter_ble_peripheral
     // Start BLE advertisement.
-    // TODO: Not sure if we should broadcast all time?  Seems to stop broadcasting after awhile...
-    _toggleAdvertiseSet();
 
-  }
+    //BluetoothAdvertiser userAdvertiser = BluetoothAdvertiser("48454C4C-4F57-4F52-4C44-777722227777");
+    //userAdvertiser.setAdvertiseData("48454C4C-4F57-4F52-4C44-777722227777");
+    //userAdvertiser.initPlatformState();  // Config for flutter_ble_peripheral
+    //userAdvertiser._toggleAdvertiseSet();
 
-  // Config for flutter_ble_peripheral
-  Future<void> initPlatformState() async {
-    final isSupported = await blePeripheral.isSupported;
-    setState(() {
-      _isSupported = isSupported;
+    BluetoothAdvertiser heartRateAdvertiser = BluetoothAdvertiser("48454C4C-4F57-4F52-4C44-777722227777");
+//
+    timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      String uuidPrefix = "48454C4C-7777-2222-7777-00000000000";
+      uuidPrefix += Random().nextInt(9).toString();
+      heartRateAdvertiser._toggleAdvertiseSet();
+      heartRateAdvertiser.setAdvertiseData(uuidPrefix);
     });
-  }
-  // Function to start advertisement.  Not used.
-  Future<void> _toggleAdvertise() async {
-    if (await blePeripheral.isAdvertising) {
-      await blePeripheral.stop();
-    } else {
+    heartRateAdvertiser.initPlatformState();  // Config for flutter_ble_peripheral
 
-      await blePeripheral.start(advertiseData: advertiseData,
-                                advertiseSettings: advertiseSettings);
-    }
-  }
-  // Function to start advertisement with extra parameters.  Disabled the toggle for now.
-  Future<void> _toggleAdvertiseSet() async {
-    // if (await blePeripheral.isAdvertising) {
-    //   await blePeripheral.stop();
-    // } else {
-      await blePeripheral.start(
-        advertiseData: advertiseData,
-        advertiseSetParameters: advertiseSetParameters,
-      );
-    // }
   }
 
   // Function to get permissions.
@@ -156,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+
         return alert;
       },
     );
@@ -203,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                              _showDialog(context, "exerciseType", flutterReactiveBle);
+                              //_showDialog(context, "exerciseType", flutterReactiveBle);
                             // Navigator.of(context).push(
                             //     MaterialPageRoute(builder: (context) => const ExerciseType()));
                           },
@@ -219,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                            _showDialog(context, "connectMonitors", flutterReactiveBle);
+                            //_showDialog(context, "connectMonitors", flutterReactiveBle);
 
                             // Navigator.push(
                             //   context,
@@ -237,12 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
                           backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                         ),
-                        onPressed: () async {
-                          _showDialog(context, "connectPartners", flutterReactiveBle);
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => const PartnerConnect()),
-                          // );
+                        onPressed: () {
+                          Navigator.of(context).push(_partnerConnectRoute());
                         },
                         child: const Icon(Icons.people_alt_sharp)
                       ),
@@ -322,6 +340,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+}
+
+Route _partnerConnectRoute() {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => const PartnerConnect(),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(0.0, 1.0);
+      const end = Offset.zero;
+      const curve = Curves.ease;
+
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+      return SlideTransition(
+        position: animation.drive(tween),
+        child: child,
+      );
+    },
+  );
 }
 
 
