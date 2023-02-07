@@ -15,8 +15,6 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
-    bool _changeSpeed = false;
-    bool _changeHeartrate = false;
 
     Completer<GoogleMapController> controller1 = Completer();
     Duration duration = Duration();
@@ -140,7 +138,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
               child: SizedBox(
                 height: screenHeight * 0.12,
-                width: screenWidth * 0.95,
+                width: screenWidth * 0.98,
                 child: DecoratedBox(
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
                   child: Row(
@@ -211,7 +209,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             ElevatedButton(
                                 onPressed: () {
                                   setState(() {
-                                    _changeSpeed = !_changeSpeed;
+                                    _changeDistance = !_changeDistance;
                                   });
                                 },
                                 style: ButtonStyle(
@@ -223,7 +221,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: SizedBox(
                                     height: 100,
                                     width: 120,
-                                child: _changeSpeed ?
+                                child: _changeDistance ?
                                 RichText(
                                     text: TextSpan(
                                         text: '  ${(duration.inMinutes / (distance / 1609)).toStringAsFixed(2)}',

@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               )
                     ),
                     Padding(
-                        padding: EdgeInsets.fromLTRB(screenWidth * 0.08, 580, 30, 0),
+                        padding: EdgeInsets.fromLTRB(screenWidth * 0.08, screenHeight * 0.63, 30, 0),
                         child: ElevatedButton(
                           style: ButtonStyle(
                             shape: MaterialStateProperty.all(const CircleBorder()),
@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, 580, 30, 0),
+                      padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, screenHeight * 0.63, 30, 0),
                       child: ElevatedButton(
                           style: ButtonStyle(
                             shape: MaterialStateProperty.all(const CircleBorder()),
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(screenWidth * 0.78, 580, 30, 0),
+                      padding: EdgeInsets.fromLTRB(screenWidth * 0.78, screenHeight * 0.63, 30, 0),
                       child: ElevatedButton(
                         style: ButtonStyle(
                           shape: MaterialStateProperty.all(const CircleBorder()),
