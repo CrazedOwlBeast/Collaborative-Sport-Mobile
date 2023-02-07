@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
     initPlatformState();  // Config for flutter_ble_peripheral
     // Start BLE advertisement.
     // TODO: Not sure if we should broadcast all time?  Seems to stop broadcasting after awhile...
-    //_toggleAdvertiseSet();
+    _toggleAdvertiseSet();
 
   }
 
