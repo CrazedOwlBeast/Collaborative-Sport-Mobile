@@ -9,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+import 'settings.dart';
+import 'past_workouts.dart';
 import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 
 void main() {
@@ -35,6 +37,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  int _currentIndex = 0;
+
+  
+
+  
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
 
@@ -70,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 
 
+
   @override
   void initState(){
     super.initState();
@@ -78,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
     initPlatformState();  // Config for flutter_ble_peripheral
     // Start BLE advertisement.
     // TODO: Not sure if we should broadcast all time?  Seems to stop broadcasting after awhile...
-    _toggleAdvertiseSet();
+    //_toggleAdvertiseSet();
 
   }
 
@@ -140,10 +149,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Shows popup dialog when buttons are pressed.
-  _onMapCreated(GoogleMapController controller) {
+  _onMapCreated(GoogleMapController controller) async {
+    if (!controller1.isCompleted)
+    {
     setState(() {
       controller1.complete(controller);
     });
+    }
   }
 
   // Function to show dialog when action buttons are pressed.
@@ -166,8 +178,8 @@ class _HomeScreenState extends State<HomeScreen> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      body: Column(
+    final List<Widget> _children = [
+      Column(
           children: [
             Container(
               color: Colors.green,
@@ -291,11 +303,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ], // Children
                 )
             )
+ 
           ]),
+          PastWorkouts(),
+          Settings()
+  ];
+
+    return Scaffold(
+      body: Center(child: _children[_currentIndex]),
       bottomNavigationBar: SizedBox(
         height: MediaQuery.of(context).size.height * 0.12, // navigation bar takes 12% of screen
         child: BottomNavigationBar(
-        // TODO: implement indexes and _onTap to follow through to other screens
+        onTap: onTabTapped,
+        currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
         landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
         showSelectedLabels: false,
@@ -308,11 +328,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
               icon: Icon(Icons.bar_chart_rounded, color: Colors.white,),
-              label: 'Home',
+              label: 'Workouts',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, color: Colors.white),
-            label: 'Home',
+            label: 'Settings',
           ),
         ],
         iconSize: 45,
@@ -322,6 +342,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void onTabTapped(int currentIndex) async
+  {
+    setState(() {
+        _currentIndex = currentIndex;
+      });
+  }
 }
 
 
@@ -342,3 +368,5 @@ Route _createRoute() {
     },
   );
 }
+
+
