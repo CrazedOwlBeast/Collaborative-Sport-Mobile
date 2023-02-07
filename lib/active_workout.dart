@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,13 +14,20 @@ class ActiveWorkout extends StatefulWidget {
 }
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
+    bool _changeDistance = false;
+    bool _changeSpeed = false;
+    bool _changeHeartrate = false;
+
     Completer<GoogleMapController> controller1 = Completer();
     Duration duration = Duration();
     Timer? timer;
     double speed = 0.0;
-    int? heartrate;
+    int? heartrate = 140;
+    int? targetHeartRate = 168;
+    double distance = 1000;
 
     static LatLng? _initialPosition;
+    static LatLng? _finalPosition;
 
     @override
     void initState(){
@@ -69,96 +75,184 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         controller1.complete(controller);
       });
     }
+    // TODO: Update distance and display it
+    // void _getDistance() {
+    //   distance = Geolocator.distanceBetween(
+    //       _initialPosition!.latitude,
+    //       _initialPosition!.longitude,
+    //       _finalPosition!.latitude,
+    //       _finalPosition!.longitude);
+    // }
 
     @override
     Widget build(BuildContext context) {
+      int heartRatePercent = ((heartrate! / targetHeartRate!) * 100).round();
       String twoDigits(int n) => n.toString().padLeft(2, '0');
       String? hours,minutes,seconds;
       hours = twoDigits(duration.inHours.remainder(60));
       minutes = twoDigits(duration.inMinutes.remainder(60));
       seconds = twoDigits(duration.inSeconds.remainder(60));
 
+      var screenWidth = MediaQuery.of(context).size.width;
+      var screenHeight = MediaQuery.of(context).size.height;
+
       return Scaffold(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
-            Stack(
-              children: [
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(target: _initialPosition!, zoom: 15),
-                  mapType: MapType.normal,
-                  onMapCreated: _onMapCreated,
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: false,
-                ),
-                Padding(
-                    padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
-                    child: FloatingActionButton(
-                      backgroundColor: Colors.white,
-                      onPressed: _currentLocation,
-                      child: Icon(Icons.location_on, color: Colors.black),
-                    )
-                ),
-                Positioned(
-                  top: 30,
-                  left: 15,
-                  // for testing purposes to be able to go back to home screen
-                  child: GestureDetector(
-                    onTap: (){
-                      Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
-                              (route) => false);
-                    },
-                    child: const Icon(Icons.arrow_back),
+        body: Column(
+          children: [
+            SizedBox(
+            height: MediaQuery.of(context).size.height * 0.60,
+            width: MediaQuery.of(context).size.width,
+            child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
+              Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(target: _initialPosition!, zoom: 15),
+                    mapType: MapType.normal,
+                    onMapCreated: _onMapCreated,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
                   ),
-                ),
-                //Duration field
-                Positioned(
-                    bottom: 25,
-                    left: 25,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      child: Text(
-                          '$hours:$minutes:$seconds',
-                          textAlign: TextAlign.center,
+                  Padding(
+                      padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
+                      child: FloatingActionButton(
+                        backgroundColor: Colors.white,
+                        onPressed: _currentLocation,
+                        child: Icon(Icons.location_on, color: Colors.black),
+                      )
+                  ),
+                  Positioned(
+                    top: 30,
+                    left: 15,
+                    // for testing purposes to be able to go back to home screen
+                    child: GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                (route) => false);
+                      },
+                      child: const Icon(Icons.arrow_back),
+                    ),
+                  ),
+                ],
+              ),
+          ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+              child: SizedBox(
+                height: screenHeight * 0.12,
+                width: screenWidth * 0.95,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
+                  child: Row(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            ElevatedButton(
+                              onPressed: () {
+
+                              },
+                              style: ButtonStyle(
+                                padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(40, 20, 0, 0)),
+                                backgroundColor: MaterialStateProperty.all(Colors.black) ,
+                                overlayColor: MaterialStateProperty.all(Colors.transparent),
+                                shape: MaterialStateProperty.all(const CircleBorder()),
+                              ),
+                              child: SizedBox(
+                                height: 100,
+                                width: 120,
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: '$minutes:$seconds',
+                                    style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                  children: const [
+                                    TextSpan(
+                                      text: '\n\t\tDuration',
+                                      style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400)
+                                    )
+                                  ],
+                              ))
+                            )),
+                             ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _changeDistance = !_changeDistance;
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 20, 10)),
+                                  backgroundColor: MaterialStateProperty.all(Colors.black) ,
+                                  overlayColor: MaterialStateProperty.all(Colors.transparent),
+                                  shape: MaterialStateProperty.all(CircleBorder()),
+                                ),
+                                 child: SizedBox(
+                                   height: 100,
+                                  width: 80,
+                                child: _changeDistance ?
+                                RichText(
+                                  text: TextSpan(
+                                    text: ' ${(distance / 1609).toStringAsFixed(2)}',
+                                    style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                    children: const [
+                                      TextSpan(
+                                        text: '\nDistance\n\t\t\t(mi)',
+                                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                      )]))  :
+                                RichText(
+                                  text: TextSpan(
+                                      text: ' ${(distance / 1000).toStringAsFixed(2)}',
+                                      style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                      children: const [
+                                        TextSpan(
+                                          text: '\nDistance\n\t\t\t(km)',
+                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                   )]))
+                             )),
+                            ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _changeSpeed = !_changeSpeed;
+                                  });
+                                },
+                                style: ButtonStyle(
+                                  padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(10, 20, 0, 0)),
+                                  backgroundColor: MaterialStateProperty.all(Colors.black) ,
+                                  overlayColor: MaterialStateProperty.all(Colors.transparent),
+                                  shape: MaterialStateProperty.all(const CircleBorder()),
+                                ),
+                                child: SizedBox(
+                                    height: 100,
+                                    width: 120,
+                                child: _changeSpeed ?
+                                RichText(
+                                    text: TextSpan(
+                                        text: '  ${(duration.inMinutes / (distance / 1609)).toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                        children: const [
+                                          TextSpan(
+                                            text: '\n\t\t\t\tPace\n\t\t(min/mi)',
+                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                          )]))  :
+                                RichText(
+                                    text: TextSpan(
+                                        text: '  ${(duration.inMinutes / (distance / 1000)).toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                        children: const [
+                                          TextSpan(
+                                            text: '\n\t\t\t\tPace\n\t\t(min/km)',
+                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                          )]))
+                             ))
+                          ]
                       ),
-                    )
-                ),
-                //Speed field
-                Positioned(
-                    bottom: 25,
-                    left: 140,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      child: Text(
-                        '${speed.toStringAsFixed(2)}\nm/s',
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                ),
-                //Heart rate field
-                Positioned(
-                    bottom: 25,
-                    right: 60,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      child: Text(((){
-                        return '${heartrate==null ? "--" : '$heartrate'} \nbpm';
-                      })(),
-                      textAlign: TextAlign.center,
-                      ),
-                    )
-                )
-              ],
-            ),
-        ),
-      );
-    }
+                    ]
+                  ),
+              ),
+            )
+          )
+        ]
+      )
+    );
+  }
+
 }

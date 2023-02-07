@@ -7,12 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:hello_world/exercise_type.dart';
-import 'package:hello_world/monitor_connect.dart';
-import 'package:hello_world/partner_connect.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
-// import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
 
 void main() {
