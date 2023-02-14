@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/ble_sensor_device.dart';
 
 import 'home_screen.dart';
 
 class ActiveWorkout extends StatefulWidget {
-  const ActiveWorkout({super.key});
+  final FlutterReactiveBle flutterReactiveBle;
+  final BleSensorDevice? device;
+  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.device});
 
   @override
   State<ActiveWorkout> createState() => _ActiveWorkoutState();
@@ -15,15 +19,16 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
-
+    late final BleSensorDevice device;
     Completer<GoogleMapController> controller1 = Completer();
     Duration duration = Duration();
     Timer? timer;
     double speed = 0.0;
-    int? heartrate = 140;
+    int? heartrate = 0;
     int? targetHeartRate = 168;
     double distance = 1000;
-
+    final Uuid HEART_RATE_CHARACTERISTIC = Uuid.parse('2a37');
+    final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
     static LatLng? _initialPosition;
     static LatLng? _finalPosition;
 
@@ -32,6 +37,20 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       super.initState();
       _getUserLocation();
       startTimer();
+
+      if (widget.device != null) {
+        widget.flutterReactiveBle.subscribeToCharacteristic(
+            QualifiedCharacteristic(
+                characteristicId: HEART_RATE_CHARACTERISTIC,
+                serviceId: HEART_RATE_SERVICE_UUID,
+                deviceId: widget.device!.deviceId
+            )).listen((event) {
+          setState(() {
+            heartrate = event[1];
+          });
+        });
+      }
+
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
     }
 
@@ -158,7 +177,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                               ),
                               child: SizedBox(
                                 height: 100,
-                                width: 120,
+                                width: screenWidth/4,
                                 child: RichText(
                                   text: TextSpan(
                                     text: '$minutes:$seconds',
@@ -178,14 +197,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 20, 10)),
+                                  padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 0, 10)),
                                   backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                   overlayColor: MaterialStateProperty.all(Colors.transparent),
                                   shape: MaterialStateProperty.all(CircleBorder()),
                                 ),
                                  child: SizedBox(
                                    height: 100,
-                                  width: 80,
+                                  width: screenWidth/4,
                                 child: _changeDistance ?
                                 RichText(
                                   text: TextSpan(
@@ -213,14 +232,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(10, 20, 0, 0)),
+                                  padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 20, 0, 0)),
                                   backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                   overlayColor: MaterialStateProperty.all(Colors.transparent),
                                   shape: MaterialStateProperty.all(const CircleBorder()),
                                 ),
                                 child: SizedBox(
                                     height: 100,
-                                    width: 120,
+                                    width: screenWidth/4,
                                 child: _changeDistance ?
                                 RichText(
                                     text: TextSpan(
@@ -247,7 +266,31 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   ),
               ),
             )
-          )
+          ),
+            const SizedBox(height: 16),
+            CircleAvatar(
+              //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+              radius: 60,
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              child:
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.monitor_heart, size: 30,),
+                    Text(
+                        "$heartrate",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      "bpm",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                    )
+                  ]
+                  )
+            ),
         ]
       )
     );

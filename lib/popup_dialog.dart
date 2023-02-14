@@ -5,20 +5,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:hello_world/ble_sensor_device.dart';
+import 'monitor_connect.dart';
 
-class PopupDialog extends StatelessWidget {
-
+class PopupDialog extends StatefulWidget {
+  final Function(BleSensorDevice) callBack;
   VoidCallback continueCallBack;
   String buttonType;
   final FlutterReactiveBle bluetooth;
 
-  PopupDialog(this.continueCallBack, this.buttonType, this.bluetooth, {super.key});
+  PopupDialog(this.continueCallBack, this.buttonType, this.bluetooth, this.callBack, {super.key});
+
+  @override
+  State<PopupDialog> createState() => _PopupDialogState();
+}
+
+class _PopupDialogState extends State<PopupDialog> {
+  BleSensorDevice? connectedDevice;
 
   @override
   Widget build(BuildContext context) {
   bool _hasBeenPressed = false;
 
-    if(buttonType == "exerciseType")
+    if(widget.buttonType == "exerciseType")
     {
       return Dialog(
           backgroundColor: Colors.transparent,
@@ -131,7 +140,7 @@ class PopupDialog extends StatelessWidget {
                       mini: true,
                       backgroundColor: Colors.red,
                       onPressed: () {
-                        continueCallBack();
+                        widget.continueCallBack();
                       },
                       child: Icon(Icons.clear)
                   ))
@@ -140,7 +149,7 @@ class PopupDialog extends StatelessWidget {
       );
     }
 
-    if(buttonType == "connectMonitors")
+    if(widget.buttonType == "connectMonitors")
     {
       // TODO: add buttons dynamically for every device found, no need to have all this code, but just here now for temp reasons
       return Dialog(
@@ -172,8 +181,17 @@ class PopupDialog extends StatelessWidget {
                                 )
                             )
                         ),
-                        onPressed: () {
-                          //TODO Set exercise type to walking
+                        onPressed: () async {
+                          await Navigator.push<void>(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      MonitorConnect(
+                                        flutterReactiveBle: widget.bluetooth,
+                                        callback: (device)=> setState(() {
+                                          connectedDevice = device;
+                                        }),
+                                      )));
                         },
                         child: Wrap(
                           spacing: 90,
@@ -181,7 +199,7 @@ class PopupDialog extends StatelessWidget {
                           children: [
                             const Icon(Icons.monitor_heart_outlined, size: 50,),
                             // Spacer(),
-                            Text('Garmin Dual 3', style: GoogleFonts.openSans(
+                            Text('Scan for devices', style: GoogleFonts.openSans(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
                                 height: 1.7
@@ -201,7 +219,8 @@ class PopupDialog extends StatelessWidget {
                       mini: true,
                       backgroundColor: Colors.red,
                       onPressed: () {
-                        continueCallBack();
+                        widget.callBack(connectedDevice!);
+                        widget.continueCallBack();
                       },
                       child: Icon(Icons.clear)
                   ))
@@ -214,12 +233,12 @@ class PopupDialog extends StatelessWidget {
     // TODO: Add buttons dynamically for every partner found in scan
     // TODO: Stop scanning if dialog is cancelled (not using red x)
     // TODO: Check if Bluetooth is on
-    if(buttonType == "connectPartners")
+    if(widget.buttonType == "connectPartners")
     {
       // Start scanning
       // MAC is used to connect but is random, need to scan for UUID
       List<String> foundPartnersUUIDs = [];
-      StreamSubscription<DiscoveredDevice> bleScan = bluetooth.scanForDevices(withServices: [],
+      StreamSubscription<DiscoveredDevice> bleScan = widget.bluetooth.scanForDevices(withServices: [],
           scanMode: ScanMode.lowLatency).listen((device) {
             // Ignore if already seen during this scan.
             bool newUUID = true;
@@ -284,7 +303,7 @@ class PopupDialog extends StatelessWidget {
                   mini: true,
                   backgroundColor: Colors.red,
                   onPressed: () {
-                    continueCallBack();
+                    widget.continueCallBack();
                     bleScan.cancel();
                   },
                   child: Icon(Icons.clear)

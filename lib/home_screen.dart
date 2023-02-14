@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/ble_sensor_device.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
@@ -40,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _currentIndex = 0;
 
-  
+  BleSensorDevice? device;
 
   
   Completer<GoogleMapController> controller1 = Completer();
@@ -158,13 +159,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void setConnectedDevice(BleSensorDevice device) {
+    this.device = device;
+  }
+
   // Function to show dialog when action buttons are pressed.
   // TODO: Make stateful?
   _showDialog(BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
     continueCallBack() => {
       Navigator.of(context).pop()
     };
-    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth);
+    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth, setConnectedDevice);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -231,8 +236,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                            _showDialog(context, "connectMonitors", flutterReactiveBle);
-
+                            //_showDialog(context, "connectMonitors", flutterReactiveBle);
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return PopupDialog(() => {
+                                  Navigator.of(context).pop()
+                                  },
+                                      "connectMonitors", flutterReactiveBle, (device)=> setState(() {
+                                      this.device = device;
+                                    }),);
+                                }
+                            );
                             // Navigator.push(
                             //   context,
                             //   MaterialPageRoute(builder: (context) => const MonitorConnect()),
@@ -274,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(_createRoute());
+                        Navigator.of(context).push(_createRoute(flutterReactiveBle, device));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(Colors.green) ,
@@ -351,9 +366,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 
-Route _createRoute() {
+Route _createRoute(FlutterReactiveBle ble, BleSensorDevice? connectedDevice) {
   return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => const ActiveWorkout(),
+    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, device: connectedDevice,),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
