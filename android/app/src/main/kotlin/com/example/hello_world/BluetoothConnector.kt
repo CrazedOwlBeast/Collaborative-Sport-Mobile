@@ -2,10 +2,40 @@ package com.example.CollaborativeSport
 
 import android.annotation.SuppressLint
 
-class ConnectionWrapper @RequiresApi(api = Build.VERSION_CODES.S) constructor(context: Context) {
+import androidx.annotation.NonNull
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
+
+class MainActivity: FlutterActivity() {
+    private val CHANNEL = 'BluetoothConnector'
+
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
+            // This method is invoked on the main thread.
+                call, result ->
+            if (call.method == "startBluetoothConnection") {
+                val bluetoothConnector = BluetoothConnector()
+
+                result.success(100)
+            } else {
+                result.notImplemented()
+            }
+        }
+
+    }
+}
+
+class BluetoothConnector @RequiresApi(api = Build.VERSION_CODES.S) constructor(){
     private val TAG = "ConnectionWrapper"
     private val bluetoothAdapter: BluetoothAdapter
-    private val context: Context
+    //private val context: Context
     var acceptThread: AcceptThread? = null
         private set
     private var connectThread: ConnectThread? = null
@@ -13,6 +43,8 @@ class ConnectionWrapper @RequiresApi(api = Build.VERSION_CODES.S) constructor(co
     private var deviceUUID: UUID? = null
     var connectedThread: ConnectedThread? = null
         private set
+
+    //private val CHANNEL = "samples.flutter.dev/battery"
 
     /**
      * Thread that sits there at all times waiting for a connection.
@@ -194,7 +226,7 @@ class ConnectionWrapper @RequiresApi(api = Build.VERSION_CODES.S) constructor(co
                     // Passing data from the input stream to an activity.
                     val incomingDataIntent = Intent("incomingData")
                     incomingDataIntent.putExtra("data", incomingData)
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(incomingDataIntent)
+                    //LocalBroadcastManager.getInstance(context).sendBroadcast(incomingDataIntent)
                 } catch (e: IOException) {
                     Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage())
                     break
@@ -258,7 +290,7 @@ class ConnectionWrapper @RequiresApi(api = Build.VERSION_CODES.S) constructor(co
     }
 
     init {
-        this.context = context
+        //this.context = context
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         start()
     }

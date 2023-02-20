@@ -46,8 +46,11 @@ class HomeScreenState extends State<HomeScreen> {
   /// Proof of concept for calling native code.
   /// https://docs.flutter.dev/development/platform-integration/platform-channels?tab=type-mappings-kotlin-tab
   static const platform = MethodChannel('samples.flutter.dev/battery');
+  static const platform2 = MethodChannel('BluetoothConnector');
 // Get battery level.
   String batteryLevel = 'Unknown battery level.';
+
+  Future<void>
 
   Future<void> getBatteryLevel() async {
     String newBatteryLevel = "-1";
