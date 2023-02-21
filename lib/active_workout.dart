@@ -293,28 +293,56 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             )
           ),
             const SizedBox(height: 16),
-            CircleAvatar(
-              //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-              radius: 60,
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              child:
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.monitor_heart, size: 30,),
-                    Text(
-                        "$heartrate",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      "bpm",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CircleAvatar(
+                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                    radius: 60,
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    child:
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.monitor_heart, size: 30,),
+                          Text(
+                            "$heartrate",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            "bpm",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                          )
+                        ]
                     )
-                  ]
-                  )
+                ),
+                CircleAvatar(
+                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                    radius: 60,
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    child:
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.power, size: 30,),
+                          Text(
+                            "$power",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            "bpm",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                          )
+                        ]
+                    )
+                ),
+              ],
             ),
         ]
       )
