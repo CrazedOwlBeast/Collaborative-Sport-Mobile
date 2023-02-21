@@ -6,6 +6,9 @@ class BleSensorDevice {
 
   final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
   final Uuid HEART_RATE_CHARACTERISTIC = Uuid.parse('2a37');
+  final Uuid CYCLING_POWER_SERVICE_UUID = Uuid.parse('1818');
+  final Uuid CYCLING_POWER_CHARACTERISTIC = Uuid.parse('2a63');
+
   String deviceId;
 
   final String type;
@@ -13,12 +16,5 @@ class BleSensorDevice {
 
 
   BleSensorDevice({required this.type, required this.flutterReactiveBle, required this.deviceId});
-
-
-
-  Future<void> connect() async {
-
-  }
-
 
 }

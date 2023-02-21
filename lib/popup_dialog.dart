@@ -9,20 +9,21 @@ import 'package:hello_world/ble_sensor_device.dart';
 import 'monitor_connect.dart';
 
 class PopupDialog extends StatefulWidget {
-  final Function(BleSensorDevice) callBack;
+  final Function(List<BleSensorDevice>) callBack;
   VoidCallback continueCallBack;
   String buttonType;
   final FlutterReactiveBle bluetooth;
+  List<BleSensorDevice> connectedDevices;
 
-  PopupDialog(this.continueCallBack, this.buttonType, this.bluetooth, this.callBack, {super.key});
+  PopupDialog(this.continueCallBack, this.buttonType, this.bluetooth, this.callBack, this.connectedDevices, {super.key});
 
   @override
   State<PopupDialog> createState() => _PopupDialogState();
 }
 
 class _PopupDialogState extends State<PopupDialog> {
-  BleSensorDevice? connectedDevice;
-
+  //BleSensorDevice? connectedDevice;
+  //List<BleSensorDevice>? connectedDevices;
   @override
   Widget build(BuildContext context) {
   bool _hasBeenPressed = false;
@@ -188,9 +189,10 @@ class _PopupDialogState extends State<PopupDialog> {
                                   builder: (_) =>
                                       MonitorConnect(
                                         flutterReactiveBle: widget.bluetooth,
-                                        callback: (device)=> setState(() {
-                                          connectedDevice = device;
+                                        callback: (deviceList)=> setState(() {
+                                          widget.connectedDevices = deviceList;
                                         }),
+                                        connectedDevices: widget.connectedDevices,
                                       )));
                         },
                         child: Wrap(
@@ -219,7 +221,7 @@ class _PopupDialogState extends State<PopupDialog> {
                       mini: true,
                       backgroundColor: Colors.red,
                       onPressed: () {
-                        widget.callBack(connectedDevice!);
+                        widget.callBack(widget.connectedDevices);
                         widget.continueCallBack();
                       },
                       child: Icon(Icons.clear)

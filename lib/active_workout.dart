@@ -10,8 +10,8 @@ import 'home_screen.dart';
 
 class ActiveWorkout extends StatefulWidget {
   final FlutterReactiveBle flutterReactiveBle;
-  final BleSensorDevice? device;
-  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.device});
+  final List<BleSensorDevice>? deviceList;
+  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.deviceList});
 
   @override
   State<ActiveWorkout> createState() => _ActiveWorkoutState();
@@ -19,7 +19,8 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
-    late final BleSensorDevice device;
+    //late final BleSensorDevice device;
+    //late final List<BleSensorDevice> deviceList;
     Completer<GoogleMapController> controller1 = Completer();
     Duration duration = Duration();
     Timer? timer;
@@ -31,24 +32,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
     static LatLng? _initialPosition;
     static LatLng? _finalPosition;
-
+    late StreamSubscription<List<int>>? subscribeStream;
     @override
     void initState(){
       super.initState();
       _getUserLocation();
       startTimer();
 
-      if (widget.device != null) {
-        widget.flutterReactiveBle.subscribeToCharacteristic(
-            QualifiedCharacteristic(
-                characteristicId: HEART_RATE_CHARACTERISTIC,
-                serviceId: HEART_RATE_SERVICE_UUID,
-                deviceId: widget.device!.deviceId
-            )).listen((event) {
-          setState(() {
-            heartrate = event[1];
-          });
-        });
+      if (widget.deviceList != null) {
+        for (BleSensorDevice device in widget.deviceList!) {
+          if (device.type == 'HR') {
+            subscribeStream = widget.flutterReactiveBle.subscribeToCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: HEART_RATE_CHARACTERISTIC,
+                    serviceId: HEART_RATE_SERVICE_UUID,
+                    deviceId: device.deviceId
+                )).listen((event) {
+              setState(() {
+                heartrate = event[1];
+              });
+            });
+          }
+        }
+
       }
 
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
@@ -143,6 +149,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     // for testing purposes to be able to go back to home screen
                     child: GestureDetector(
                       onTap: (){
+                        subscribeStream?.cancel();
                         Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(builder: (context) => const HomeScreen()),
                                 (route) => false);
@@ -295,5 +302,4 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       )
     );
   }
-
 }

@@ -41,7 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _currentIndex = 0;
 
-  BleSensorDevice? device;
+  //BleSensorDevice? device;
+  List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
 
   
   Completer<GoogleMapController> controller1 = Completer();
@@ -159,8 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void setConnectedDevice(BleSensorDevice device) {
-    this.device = device;
+  void setConnectedDevice(List<BleSensorDevice> deviceList) {
+    this.connectedDevices = deviceList;
   }
 
   // Function to show dialog when action buttons are pressed.
@@ -169,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
     continueCallBack() => {
       Navigator.of(context).pop()
     };
-    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth, setConnectedDevice);
+    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth, setConnectedDevice, connectedDevices);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -243,9 +244,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return PopupDialog(() => {
                                   Navigator.of(context).pop()
                                   },
-                                      "connectMonitors", flutterReactiveBle, (device)=> setState(() {
-                                      this.device = device;
-                                    }),);
+                                      "connectMonitors", flutterReactiveBle, (deviceList)=> setState(() {
+                                      this.connectedDevices = deviceList;
+                                    }),
+                                    connectedDevices,
+                                  );
                                 }
                             );
                             // Navigator.push(
@@ -289,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(_createRoute(flutterReactiveBle, device));
+                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(Colors.green) ,
@@ -366,9 +369,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 
-Route _createRoute(FlutterReactiveBle ble, BleSensorDevice? connectedDevice) {
+Route _createRoute(FlutterReactiveBle ble, List<BleSensorDevice>? connectedDevices) {
   return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, device: connectedDevice,),
+    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, deviceList: connectedDevices,),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
