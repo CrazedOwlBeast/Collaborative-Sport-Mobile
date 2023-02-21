@@ -97,7 +97,6 @@ class _MonitorConnectState extends State<MonitorConnect> {
                       //connect
                       BleSensorDevice connectedSensor;
                       if (!isConnected(device.id)) {
-
                         _connection = flutterReactiveBle.connectToDevice(
                           id: device.id,
                           servicesWithCharacteristicsToDiscover: {
@@ -108,7 +107,25 @@ class _MonitorConnectState extends State<MonitorConnect> {
                           debugPrint('Connection state update: ${update
                               .connectionState}');
                         });
-                        connectedSensor = BleSensorDevice(type: 'HR', flutterReactiveBle: flutterReactiveBle, deviceId: device.id,);
+
+                        if (device.serviceUuids.any((service) => service == HEART_RATE_SERVICE_UUID)) {
+                          connectedSensor = BleSensorDevice(
+                            type: 'HR',
+                            flutterReactiveBle: flutterReactiveBle,
+                            deviceId: device.id,
+                            serviceId: HEART_RATE_SERVICE_UUID,
+                            characteristicId: HEART_RATE_CHARACTERISTIC,
+                          );
+                        }
+                        else {
+                          connectedSensor = BleSensorDevice(
+                            type: 'POWER',
+                            flutterReactiveBle: flutterReactiveBle,
+                            deviceId: device.id,
+                            serviceId: CYCLING_POWER_SERVICE_UUID,
+                            characteristicId: CYCLING_POWER_CHARACTERISTIC,
+                          );
+                        }
                         widget.connectedDevices.add(connectedSensor);
                       }
                       else {

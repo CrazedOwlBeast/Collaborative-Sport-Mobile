@@ -26,13 +26,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     Timer? timer;
     double speed = 0.0;
     int? heartrate = 0;
+    int? power = 0;
     int? targetHeartRate = 168;
     double distance = 1000;
-    final Uuid HEART_RATE_CHARACTERISTIC = Uuid.parse('2a37');
-    final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
+
     static LatLng? _initialPosition;
     static LatLng? _finalPosition;
-    late StreamSubscription<List<int>>? subscribeStream;
+    StreamSubscription<List<int>>? subscribeStreamHR;
+    StreamSubscription<List<int>>? subscribeStreamPower;
     @override
     void initState(){
       super.initState();
@@ -42,14 +43,26 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       if (widget.deviceList != null) {
         for (BleSensorDevice device in widget.deviceList!) {
           if (device.type == 'HR') {
-            subscribeStream = widget.flutterReactiveBle.subscribeToCharacteristic(
+            subscribeStreamHR = widget.flutterReactiveBle.subscribeToCharacteristic(
                 QualifiedCharacteristic(
-                    characteristicId: HEART_RATE_CHARACTERISTIC,
-                    serviceId: HEART_RATE_SERVICE_UUID,
+                    characteristicId: device.characteristicId,
+                    serviceId: device.serviceId,
                     deviceId: device.deviceId
                 )).listen((event) {
               setState(() {
                 heartrate = event[1];
+              });
+            });
+          }
+          else if (device.type == 'POWER') {
+            subscribeStreamPower = widget.flutterReactiveBle.subscribeToCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: device.characteristicId,
+                    serviceId: device.serviceId,
+                    deviceId: device.deviceId
+                )).listen((event) {
+              setState(() {
+                power = event[1];
               });
             });
           }
@@ -148,8 +161,13 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     left: 15,
                     // for testing purposes to be able to go back to home screen
                     child: GestureDetector(
-                      onTap: (){
-                        subscribeStream?.cancel();
+                      onTap: () {
+                        if (subscribeStreamHR != null) {
+                          subscribeStreamHR?.cancel();
+                        }
+                        if (subscribeStreamPower != null) {
+                          subscribeStreamPower?.cancel();
+                        }
                         Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(builder: (context) => const HomeScreen()),
                                 (route) => false);

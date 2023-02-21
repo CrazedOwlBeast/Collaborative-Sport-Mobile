@@ -4,17 +4,18 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 class BleSensorDevice {
 
-  final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
-  final Uuid HEART_RATE_CHARACTERISTIC = Uuid.parse('2a37');
-  final Uuid CYCLING_POWER_SERVICE_UUID = Uuid.parse('1818');
-  final Uuid CYCLING_POWER_CHARACTERISTIC = Uuid.parse('2a63');
-
-  String deviceId;
-
+  final String deviceId;
   final String type;
   final FlutterReactiveBle flutterReactiveBle;
+  final serviceId;
+  final characteristicId;
 
-
-  BleSensorDevice({required this.type, required this.flutterReactiveBle, required this.deviceId});
+  BleSensorDevice({
+    required this.type,
+    required this.flutterReactiveBle,
+    required this.deviceId,
+    required this.serviceId,
+    required this.characteristicId
+  });
 
 }
