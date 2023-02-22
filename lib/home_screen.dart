@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+import 'monitor_connect.dart';
 import 'settings.dart';
 import 'past_workouts.dart';
 import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
@@ -41,9 +42,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _currentIndex = 0;
 
-  //BleSensorDevice? device;
-  List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
+  late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
+  late double dialogHeight = MediaQuery.of(context).size.height * .66;
+  final LayerLink layerLink = LayerLink();
+  late OverlayEntry overlayEntry;
+  late Offset dialogOffset;
 
+  void showConnectMonitorsDialog() {
+    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .06);
+    overlayEntry = OverlayEntry(
+      builder: (BuildContext context) {
+        return Positioned(
+          width: dialogWidth,
+          height: dialogHeight,
+          top: 0.0,
+          left: 0.0,
+          child: MonitorConnect(
+            flutterReactiveBle: flutterReactiveBle,
+            callback: (deviceList)=> setState(() {
+              connectedDevices = deviceList;
+            }),
+            connectedDevices: connectedDevices,
+            offset: dialogOffset,
+            link: layerLink,
+            dialogWidth: dialogWidth,
+            dialogHeight: dialogHeight,
+            overlayEntry: overlayEntry
+          ),
+        );
+      },
+    );
+    Overlay.of(context).insert(overlayEntry);
+  }
+
+  // BleSensorDevice? device;
+  List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
   
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
@@ -78,8 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
     duration: 9999,
     // maxExtendedAdvertisingEvents: 444,
   );
-
-
 
   @override
   void initState(){
@@ -185,7 +216,9 @@ class _HomeScreenState extends State<HomeScreen> {
     var screenHeight = MediaQuery.of(context).size.height;
 
     final List<Widget> _children = [
-      Column(
+    CompositedTransformTarget(
+      link: layerLink,
+      child: Column(
           children: [
             Container(
               color: Colors.green,
@@ -228,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: const Icon(Icons.pedal_bike, size: 30)
                         ),
                     ),
-                    Padding(
+                    Padding( /// Connect monitors
                       padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, screenHeight * 0.63, 30, 0),
                       child: ElevatedButton(
                           style: ButtonStyle(
@@ -236,21 +269,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
-                          onPressed: () {
-                            //_showDialog(context, "connectMonitors", flutterReactiveBle);
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return PopupDialog(() => {
-                                  Navigator.of(context).pop()
-                                  },
-                                      "connectMonitors", flutterReactiveBle, (deviceList)=> setState(() {
-                                      this.connectedDevices = deviceList;
-                                    }),
-                                    connectedDevices,
-                                  );
-                                }
-                            );
+                          onPressed: () async {
+                            showConnectMonitorsDialog();
                             // Navigator.push(
                             //   context,
                             //   MaterialPageRoute(builder: (context) => const MonitorConnect()),
@@ -322,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             )
  
-          ]),
+          ]),),
           PastWorkouts(),
           Settings()
   ];

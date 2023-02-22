@@ -183,17 +183,19 @@ class _PopupDialogState extends State<PopupDialog> {
                             )
                         ),
                         onPressed: () async {
-                          await Navigator.push<void>(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      MonitorConnect(
-                                        flutterReactiveBle: widget.bluetooth,
-                                        callback: (deviceList)=> setState(() {
-                                          widget.connectedDevices = deviceList;
-                                        }),
-                                        connectedDevices: widget.connectedDevices,
-                                      )));
+                          //await Navigator.push<void>(
+                          //    context,
+                          //    MaterialPageRoute(
+                          //        builder: (_) =>
+                          //            //MonitorConnect(
+                          //            //  flutterReactiveBle: widget.bluetooth,
+                          //            //  callback: (deviceList)=> setState(() {
+                          //            //    widget.connectedDevices = deviceList;
+                          //            //  }),
+                          //            //  connectedDevices: widget.connectedDevices,
+                          //            // ))
+                          //
+                          //))
                         },
                         child: Wrap(
                           spacing: 90,
