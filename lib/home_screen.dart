@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/ble_sensor_device.dart';
+import 'package:hello_world/partner_connect.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
@@ -289,10 +290,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         onPressed: () async {
                           _showDialog(context, "connectPartners", flutterReactiveBle);
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => const PartnerConnect()),
-                          // );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PartnerConnect()),
+                          );
                         },
                         child: const Icon(Icons.people_alt_sharp)
                       ),
