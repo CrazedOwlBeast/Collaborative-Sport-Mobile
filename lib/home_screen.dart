@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .06);
     overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
-        partnerConnectAdvertiser = PartnerConnect(deviceType: DeviceType.advertiser, link: layerLink, offset: dialogOffset, dialogWidth: dialogWidth, dialogHeight: dialogHeight, overlayEntry: overlayEntry);
+        //partnerConnectAdvertiser = PartnerConnect(deviceType: DeviceType.advertiser, link: layerLink, offset: dialogOffset, dialogWidth: dialogWidth, dialogHeight: dialogHeight, overlayEntry: overlayEntry);
         return Positioned(
           width: dialogWidth,
           height: dialogHeight,
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
               //   connectedDevices = deviceList;
               // }),
               // connectedDevices: connectedDevices,
-              deviceType: DeviceType.browser,
+              deviceType: DeviceType.advertiser,
               offset: dialogOffset,
               link: layerLink,
               dialogWidth: dialogWidth,

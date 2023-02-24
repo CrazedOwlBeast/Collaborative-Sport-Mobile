@@ -157,7 +157,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       )
                   ),
                   Positioned(
-                    top: 30,
+                    top: 40,
                     left: 15,
                     // for testing purposes to be able to go back to home screen
                     child: GestureDetector(
@@ -172,7 +172,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             MaterialPageRoute(builder: (context) => const HomeScreen()),
                                 (route) => false);
                       },
-                      child: const Icon(Icons.arrow_back),
+                      child: const Icon(Icons.arrow_back, size: 50),
                     ),
                   ),
                 ],

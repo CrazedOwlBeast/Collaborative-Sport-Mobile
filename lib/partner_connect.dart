@@ -73,9 +73,9 @@ class _PartnerConnectState extends State<PartnerConnect> {
   Color getStateColor(SessionState state) {
     switch (state) {
       case SessionState.notConnected:
-        return Colors.black;
+        return Colors.white;
       case SessionState.connecting:
-        return Colors.grey;
+        return Colors.yellow;
       default:
         return Colors.green;
     }
@@ -93,42 +93,43 @@ class _PartnerConnectState extends State<PartnerConnect> {
 
   _onTabItemListener(Device device) {
     if (device.state == SessionState.connected) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            final myController = TextEditingController();
-            return AlertDialog(
-              title: Text("Send message"),
-              content: TextField(controller: myController),
-              actions: [
-                TextButton(
-                  child: Text("Cancel"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text("Send"),
-                  onPressed: () {
-                    nearbyService.sendMessage(
-                        device.deviceId, myController.text);
-                    myController.text = '';
-                  },
-                )
-              ],
-            );
-          });
+      nearbyService.sendMessage(device.deviceId, "Hello world");
+      // showDialog(
+      //     context: context,
+      //     builder: (BuildContext context) {
+      //       final myController = TextEditingController();
+      //       return AlertDialog(
+      //         title: Text("Send message"),
+      //         content: TextField(controller: myController),
+      //         actions: [
+      //           TextButton(
+      //             child: Text("Cancel"),
+      //             onPressed: () {
+      //               Navigator.of(context).pop();
+      //             },
+      //           ),
+      //           TextButton(
+      //             child: Text("Send"),
+      //             onPressed: () {
+      //               nearbyService.sendMessage(
+      //                   device.deviceId, myController.text);
+      //               myController.text = '';
+      //             },
+      //           )
+      //         ],
+      //       );
+      //     });
     }
   }
 
   int getItemCount() {
-    if (widget.deviceType == DeviceType.advertiser) {
-      return connectedDevices.length;
-    } else {
+    // if (widget.deviceType == DeviceType.advertiser)
+    //   return connectedDevices.length;
+
       String debugString = devices.length.toString();
       debugPrint("devices.length: $debugString");
       return devices.length;
-    }
+
   }
 
   _onButtonClicked(Device device) {
@@ -160,22 +161,16 @@ class _PartnerConnectState extends State<PartnerConnect> {
       devInfo = iosInfo.localizedModel;
     }
     await nearbyService.init(
-        serviceType: 'dartobservatory',
+        serviceType: 'mp-connection',
         deviceName: devInfo,
         strategy: Strategy.P2P_CLUSTER,
         callback: (isRunning) async {
           if (isRunning) {
-            if (widget.deviceType == DeviceType.browser) {
-              await nearbyService.stopBrowsingForPeers();
-              await Future.delayed(Duration(microseconds: 200));
-              await nearbyService.startBrowsingForPeers();
-            } else {
               await nearbyService.stopAdvertisingPeer();
               await nearbyService.stopBrowsingForPeers();
               await Future.delayed(Duration(microseconds: 200));
               await nearbyService.startAdvertisingPeer();
               await nearbyService.startBrowsingForPeers();
-            }
           }
         });
     subscription =
@@ -238,7 +233,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
                               itemCount: getItemCount(),
                               itemBuilder: (context, index) {
                                 final device = widget.deviceType == DeviceType.advertiser
-                                    ? connectedDevices[index]
+                                    ? devices[index]
                                     : devices[index];
                                 return Container(
                                   margin: EdgeInsets.all(8.0),
@@ -252,7 +247,12 @@ class _PartnerConnectState extends State<PartnerConnect> {
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(device.deviceName),
+                                                    Text(
+                                                        device.deviceName,
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                    ),
                                                     Text(
                                                       getStateName(device.state),
                                                       style: TextStyle(

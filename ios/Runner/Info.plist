@@ -46,6 +46,12 @@
 	<string>Older devices need location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Need location when in use</string>
+	<key>NSBonjourServices</key>
+    <array>
+        <string>_mp-connection._tcp</string>
+    </array>
+    <key>UIRequiresPersistentWiFi</key>
+    <true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>microphone</string>
 	<key>NSMotionUsageDescription</key>
