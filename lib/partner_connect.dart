@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hello_world/bluetooth_manager.dart';
 
 enum DeviceType { advertiser, browser }
 
@@ -28,9 +29,9 @@ class PartnerConnect extends StatefulWidget {
 class _PartnerConnectState extends State<PartnerConnect> {
   List<Device> devices = [];
   List<Device> connectedDevices = [];
-  late NearbyService nearbyService;
-  late StreamSubscription subscription;
-  late StreamSubscription receivedDataSubscription;
+  NearbyService nearbyService = BluetoothManager.nearbyService;
+  late StreamSubscription? subscription;
+  //late StreamSubscription receivedDataSubscription;
 
   bool isInit = false;
 
@@ -42,10 +43,10 @@ class _PartnerConnectState extends State<PartnerConnect> {
 
   @override
   void dispose() {
-    subscription.cancel();
-    receivedDataSubscription.cancel();
-    nearbyService.stopBrowsingForPeers();
-    nearbyService.stopAdvertisingPeer();
+    subscription?.cancel();
+    //receivedDataSubscription.cancel();
+    //nearbyService.stopBrowsingForPeers();
+    //nearbyService.stopAdvertisingPeer();
     super.dispose();
   }
 
@@ -149,7 +150,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
   }
 
   void init() async {
-    nearbyService = NearbyService();
+    //nearbyService = NearbyService();
     String devInfo = '';
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -173,40 +174,42 @@ class _PartnerConnectState extends State<PartnerConnect> {
               await nearbyService.startBrowsingForPeers();
           }
         });
-    subscription =
-        nearbyService.stateChangedSubscription(callback: (devicesList) {
-          devicesList.forEach((element) {
-            print(
-                " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");
+    subscription = BluetoothManager.instance.startStateSubscription();
+    subscription?.onData((devicesList) {
+      devicesList.forEach((element) {
+        print(
+            " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");
 
-            if (Platform.isAndroid) {
-              if (element.state == SessionState.connected) {
-                nearbyService.stopBrowsingForPeers();
-              } else {
-                nearbyService.startBrowsingForPeers();
-              }
-            }
-          });
+        if (element.state == SessionState.connected && !BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
+          BluetoothManager.instance.connectedDevices[element.deviceId] = element;
+        }
+        if (element.state == SessionState.notConnected && BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
+          BluetoothManager.instance.connectedDevices.remove(element.deviceId);
+        }
+      });
+      setState(() {
+        devices.clear();
+        devices.addAll(devicesList);
+        connectedDevices.clear();
+        connectedDevices.addAll(devicesList
+            .where((d) => d.state == SessionState.connected)
+            .toList());
+      });
+    });
 
-          setState(() {
-            devices.clear();
-            devices.addAll(devicesList);
-            connectedDevices.clear();
-            connectedDevices.addAll(devicesList
-                .where((d) => d.state == SessionState.connected)
-                .toList());
-          });
-        });
 
-    receivedDataSubscription =
-        nearbyService.dataReceivedSubscription(callback: (data) {
-          print("dataReceivedSubscription: ${jsonEncode(data)}");
-          showToast(jsonEncode(data),
-              context: context,
-              axis: Axis.horizontal,
-              alignment: Alignment.center,
-              position: StyledToastPosition.bottom);
-        });
+
+
+    // StreamSubscription receivedDataSubscription =
+    //     nearbyService.dataReceivedSubscription(callback: (data) {
+    //       print("dataReceivedSubscription: ${jsonEncode(data)}");
+    //       showToast(jsonEncode(data),
+    //           context: context,
+    //           axis: Axis.horizontal,
+    //           alignment: Alignment.center,
+    //           position: StyledToastPosition.bottom);
+    //     });
+
   }
 
 

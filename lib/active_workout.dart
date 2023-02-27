@@ -5,6 +5,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/ble_sensor_device.dart';
+import 'package:hello_world/bluetooth_manager.dart';
 
 import 'home_screen.dart';
 
@@ -26,9 +27,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     Timer? timer;
     double speed = 0.0;
     int? heartrate = 0;
+    int? peerHeartRate = 0;
     int? power = 0;
+    int? peerPower = 0;
     int? targetHeartRate = 168;
     double distance = 1000;
+    late StreamSubscription peerSubscription;
 
     static LatLng? _initialPosition;
     static LatLng? _finalPosition;
@@ -51,6 +55,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 )).listen((event) {
               setState(() {
                 heartrate = event[1];
+                BluetoothManager.instance.broadcastString('0: $heartrate');
               });
             });
           }
@@ -63,20 +68,44 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 )).listen((event) {
               setState(() {
                 power = event[1];
+                BluetoothManager.instance.broadcastString('1: $power');
               });
             });
           }
         }
-
       }
-
+      peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {
+        setState(() {
+          int type = int.parse(event.substring(0, 1));
+          int value = int.parse(event.substring(3));
+          switch (type) {
+            case 0:
+              peerHeartRate = value;
+              break;
+            case 1:
+              peerPower = value;
+              break;
+            default:
+          }
+        });
+      });
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
     }
+
+    @override
+  void dispose() {
+      peerSubscription.cancel();
+    super.dispose();
+  }
 
     void addTime() {
       setState(() {
         final seconds = duration.inSeconds + 1;
         duration = Duration(seconds: seconds);
+
+        //Testing purposes for peers
+        //BluetoothManager.instance.broadcastString('0: ${80}');
+        //BluetoothManager.instance.broadcastString('1: ${150}');
       });
     }
 
@@ -335,7 +364,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                           Text(
-                            "bpm",
+                            "W",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
                           )
