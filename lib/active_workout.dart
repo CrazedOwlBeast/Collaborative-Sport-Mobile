@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
+import 'package:hello_world/past_workouts.dart';
 
 import 'home_screen.dart';
 
@@ -31,7 +32,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     int? power = 0;
     int? peerPower = 0;
     int? targetHeartRate = 168;
-    double distance = 1000;
+    double distance = 0.0;
+    bool pauseWorkout = true;
+    bool stopWorkout = false;
     late StreamSubscription peerSubscription;
 
     static LatLng? _initialPosition;
@@ -165,8 +168,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         body: Column(
           children: [
             SizedBox(
-            height: MediaQuery.of(context).size.height * 0.60,
-            width: MediaQuery.of(context).size.width,
+            height: screenHeight * 0.52,
+            width: screenWidth,
             child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
               Stack(
                 children: [
@@ -373,6 +376,67 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all(Colors.transparent),
+                        elevation: MaterialStateProperty.all(0.0),
+                        backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if(pauseWorkout)
+                        {
+                          timer?.cancel();
+                          pauseWorkout = !pauseWorkout;
+                          stopWorkout = !stopWorkout;
+                        }
+                        else
+                        {
+                          startTimer();
+                          pauseWorkout = !pauseWorkout;
+                          stopWorkout = !stopWorkout;
+                        }
+                      });
+                    },
+                    child:
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.orange,
+                      child: pauseWorkout ?
+                      Icon(Icons.pause, size: 80,color: Colors.white) :
+                      Icon(Icons.play_arrow, size: 80, color: Colors.white),
+                    )
+                ),
+                Visibility(
+                    visible: stopWorkout,
+                    child: ElevatedButton(
+                        style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all(Colors.transparent),
+                            elevation: MaterialStateProperty.all(0.0),
+                            backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
+                        ),
+                        onLongPress: () {
+                          setState(() {
+                            // TODO: grab all information before transitioning to new screen
+                            Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context) => const PastWorkouts()));
+                          });
+                        },
+                        onPressed: null,
+                        child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: Colors.orange,
+                            child:
+                            Icon(Icons.stop, size: 80,color: Colors.white)
+                        )
+                    )
+                )
+              ],
+            )
         ]
       )
     );

@@ -44,7 +44,7 @@ dependencies:
   google_fonts:
   permission_handler: ^10.2.0
   flutter_ble_peripheral: ^1.1.1
-  collection: ^1.17.0
+  collection: ^1.16.0
   flutter_nearby_connections: ^1.1.1
   device_info: ^2.0.3
   flutter_styled_toast: ^2.1.3
