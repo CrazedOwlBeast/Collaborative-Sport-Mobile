@@ -252,7 +252,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
                                                   children: [
                                                     Text(
                                                         device.deviceName,
-                                                        style: TextStyle(
+                                                        style: const TextStyle(
                                                           color: Colors.white,
                                                         ),
                                                     ),
