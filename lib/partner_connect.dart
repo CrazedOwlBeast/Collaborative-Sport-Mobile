@@ -8,6 +8,7 @@ import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hello_world/bluetooth_manager.dart';
+import 'package:hello_world/home_screen.dart';
 
 enum DeviceType { advertiser, browser }
 

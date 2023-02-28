@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -35,10 +36,17 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     double distance = 0.0;
     bool pauseWorkout = true;
     bool stopWorkout = false;
+    bool connectedPartner = false;
     late StreamSubscription peerSubscription;
 
+
+    late Position _currentPosition;
+    late Position _previousPosition;
+    late StreamSubscription<Position> _positionStream;
+    double _totalDistance = 0;
+    List<Position> locations = <Position>[];
+
     static LatLng? _initialPosition;
-    static LatLng? _finalPosition;
     StreamSubscription<List<int>>? subscribeStreamHR;
     StreamSubscription<List<int>>? subscribeStreamPower;
     @override
@@ -46,6 +54,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       super.initState();
       _getUserLocation();
       startTimer();
+      _calculateDistance();
 
       if (widget.deviceList != null) {
         for (BleSensorDevice device in widget.deviceList!) {
@@ -79,6 +88,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       }
       peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {
         setState(() {
+          connectedPartner = !connectedPartner;
           int type = int.parse(event.substring(0, 1));
           int value = int.parse(event.substring(3));
           switch (type) {
@@ -95,9 +105,39 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
     }
 
+    Future _calculateDistance() async {
+      _positionStream = Geolocator.getPositionStream(locationSettings: LocationSettings(distanceFilter: 10, accuracy: LocationAccuracy.high))
+          .listen((Position position) async {
+        if ((await Geolocator.isLocationServiceEnabled())) {
+          Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+              .then((Position position) {
+            setState(() {
+              _currentPosition = position;
+              locations.add(_currentPosition);
+
+              if (locations.length > 1) {
+                _previousPosition = locations.elementAt(locations.length - 2);
+
+                var _distanceBetweenLastTwoLocations = Geolocator.distanceBetween(
+                  _previousPosition.latitude,
+                  _previousPosition.longitude,
+                  _currentPosition.latitude,
+                  _currentPosition.longitude,
+                );
+                _totalDistance += _distanceBetweenLastTwoLocations;
+              }
+            });
+          }).catchError((err) {
+            print(err);
+          });
+        }
+      });
+    }
+
     @override
   void dispose() {
       peerSubscription.cancel();
+      _positionStream.cancel();
     super.dispose();
   }
 
@@ -105,7 +145,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       setState(() {
         final seconds = duration.inSeconds + 1;
         duration = Duration(seconds: seconds);
-
         //Testing purposes for peers
         //BluetoothManager.instance.broadcastString('0: ${80}');
         //BluetoothManager.instance.broadcastString('1: ${150}');
@@ -143,14 +182,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         controller1.complete(controller);
       });
     }
-    // TODO: Update distance and display it
-    // void _getDistance() {
-    //   distance = Geolocator.distanceBetween(
-    //       _initialPosition!.latitude,
-    //       _initialPosition!.longitude,
-    //       _finalPosition!.latitude,
-    //       _finalPosition!.longitude);
-    // }
 
     @override
     Widget build(BuildContext context) {
@@ -213,12 +244,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
               child: SizedBox(
-                height: screenHeight * 0.12,
-                width: screenWidth * 0.98,
+                height: screenHeight * 0.10,
+                width: screenWidth * 0.90,
                 child: DecoratedBox(
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
-                  child: Row(
-                    children: <Widget>[
+                  child:
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
@@ -238,11 +268,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: RichText(
                                   text: TextSpan(
                                     text: '$minutes:$seconds',
-                                    style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.w600),
                                   children: const [
                                     TextSpan(
                                       text: '\n\t\tDuration',
-                                      style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400)
+                                      style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400)
                                     )
                                   ],
                               ))
@@ -265,21 +295,21 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: _changeDistance ?
                                 RichText(
                                   text: TextSpan(
-                                    text: ' ${(distance / 1609).toStringAsFixed(2)}',
+                                    text: ' ${(_totalDistance > 1609 ? (_totalDistance / 1609).toStringAsFixed(2) : 0)}',
                                     style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                     children: const [
                                       TextSpan(
                                         text: '\nDistance\n\t\t\t(mi)',
-                                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                        style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400),
                                       )]))  :
                                 RichText(
                                   text: TextSpan(
-                                      text: ' ${(distance / 1000).toStringAsFixed(2)}',
-                                      style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                      text: ' ${(_totalDistance > 1000 ? (_totalDistance / 1000).toStringAsFixed(2) : 0)}',
+                                      style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
                                           text: '\nDistance\n\t\t\t(km)',
-                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                          style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400),
                                    )]))
                              )),
                             ElevatedButton(
@@ -297,86 +327,156 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: SizedBox(
                                     height: 100,
                                     width: screenWidth/4,
-                                child: _changeDistance ?
-                                RichText(
-                                    text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1609)).toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                        children: const [
-                                          TextSpan(
-                                            text: '\n\t\t\t\tPace\n\t\t(min/mi)',
-                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                          )]))  :
-                                RichText(
-                                    text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1000)).toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                        children: const [
-                                          TextSpan(
-                                            text: '\n\t\t\t\tPace\n\t\t(min/km)',
-                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                          )]))
-                             ))
+                                    child: _changeDistance ?
+                                      RichText(
+                                          text: TextSpan(
+                                              text: '${((duration.inSeconds / _totalDistance) > 0 ? (((duration.inSeconds / _totalDistance) * 1609) / 60).toStringAsFixed(2) : 0)}',
+                                              style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.w600),
+                                              children: const [
+                                                TextSpan(
+                                                  text: '\n\t\t\t\tPace\n\t\t(min/mi)',
+                                                  style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400),
+                                                )]))  :
+                                      RichText(
+                                          text: TextSpan(
+                                              text: '${((duration.inSeconds / _totalDistance) > 0 ? (((duration.inSeconds / _totalDistance) * 1000) / 60).toStringAsFixed(2) : 0)}',
+                                              style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.w600),
+                                              children: const [
+                                                TextSpan(
+                                                  text: '\n\t\t\t\tPace\n\t\t(min/km)',
+                                                  style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400),
+                                                )])
+                                      )
+                                )
+                            )
                           ]
                       ),
-                    ]
-                  ),
-              ),
+                ),
             )
           ),
-            const SizedBox(height: 16),
-            Row(
+            SizedBox(
+              height: screenHeight * 0.20,
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
                     child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.monitor_heart, size: 30,),
-                          Text(
-                            "$heartrate",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "bpm",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
-                ),
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.power, size: 30,),
-                          Text(
-                            "$power",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "W",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                child:
+                                Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.monitor_heart, size: 30,),
+                                      Text(
+                                        "$heartrate",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                      ),
+                                      Text(
+                                        "bpm",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                      )
+                                    ]
+                                )
+                            ),
+                            Visibility(
+                              visible: !connectedPartner,
+                              child: CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                child:
+                                Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.monitor_heart, size: 30, color: Colors.redAccent),
+                                      Text(
+                                        "$peerHeartRate",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 25, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                                      ),
+                                      Text(
+                                        "bpm",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 15, color: Colors.redAccent, fontWeight: FontWeight.w400),
+                                      )
+                                    ]
+                                )
+                              )
+                            )
+                          ]
+                        ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
+                  child:
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            child:
+                            Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.power, size: 30),
+                                  Text(
+                                    "$power",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                  ),
+                                  Text(
+                                    "W",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                  )
+                                ]
+                            )
+                        ),
+                        Visibility(
+                            visible: !connectedPartner,
+                            child: CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                child:
+                                Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.power, size: 30, color: Colors.redAccent),
+                                      Text(
+                                        "$peerPower",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 25, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                                      ),
+                                      Text(
+                                        "W",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 15, color: Colors.redAccent, fontWeight: FontWeight.w400),
+                                      )
+                                    ]
+                                )
+                            )
+                        )
+                      ]
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+      ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -404,11 +504,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     },
                     child:
                     CircleAvatar(
-                      radius: 60,
+                      radius: 45,
                       backgroundColor: Colors.orange,
                       child: pauseWorkout ?
-                      Icon(Icons.pause, size: 80,color: Colors.white) :
-                      Icon(Icons.play_arrow, size: 80, color: Colors.white),
+                      Icon(Icons.pause, size: 65,color: Colors.white) :
+                      Icon(Icons.play_arrow, size: 65, color: Colors.white),
                     )
                 ),
                 Visibility(
@@ -433,7 +533,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             child:
                             Icon(Icons.stop, size: 80,color: Colors.white)
                         )
-                    )
+                  )
                 )
               ],
             )

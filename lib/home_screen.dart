@@ -148,8 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _getPermissions();  // TODO: Wait for permissions before getting location. (affects first run)
     _getUserLocation();
-
-
   }
 
   // Function to get permissions.

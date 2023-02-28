@@ -39,16 +39,24 @@ class _PastWorkoutsState extends State<PastWorkouts> {
               child: Column(
                 children: [
                   Text(
-                    "Your Workouts",
-                    style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 45
-                )
-              ),
-              getPreviousWorkouts()]
+                      "Your Workouts",
+                      style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 45
+                    )
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                (route) => false);
+                      },
+                      child: const Icon(Icons.arrow_back, size: 50, color: Colors.white),
+                    ),
+                  getPreviousWorkouts()
+                ]
               )
-              ),
-
+            ),
         ]
       )
     );
