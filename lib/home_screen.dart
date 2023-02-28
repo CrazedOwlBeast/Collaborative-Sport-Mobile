@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
-  late double dialogHeight = MediaQuery.of(context).size.height * .66;
+  late double dialogHeight = MediaQuery.of(context).size.height * .60;
   final LayerLink layerLink = LayerLink();
   late OverlayEntry overlayEntry;
   late Offset dialogOffset;
@@ -51,26 +51,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   void showConnectMonitorsDialog() {
-    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .06);
+    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
     overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
-        return Positioned(
-          width: dialogWidth,
-          height: dialogHeight,
-          top: 0.0,
-          left: 0.0,
-          child: MonitorConnect(
-            flutterReactiveBle: flutterReactiveBle,
-            callback: (deviceList)=> setState(() {
-              connectedDevices = deviceList;
-            }),
-            connectedDevices: connectedDevices,
-            offset: dialogOffset,
-            link: layerLink,
-            dialogWidth: dialogWidth,
-            dialogHeight: dialogHeight,
-            overlayEntry: overlayEntry
-          ),
+        return Stack(
+          children: <Widget>[
+            Positioned.fill(
+                child: GestureDetector(
+                onTap: dismissMenu,
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              )
+            ),
+            Positioned(
+              width: dialogWidth,
+              height: dialogHeight,
+              top: 0.0,
+              left: 0.0,
+              child: MonitorConnect(
+                  flutterReactiveBle: flutterReactiveBle,
+                  callback: (deviceList)=> setState(() {
+                    connectedDevices = deviceList;
+                  }),
+                  connectedDevices: connectedDevices,
+                  offset: dialogOffset,
+                  link: layerLink,
+                  dialogWidth: dialogWidth,
+                  dialogHeight: dialogHeight,
+                  overlayEntry: overlayEntry
+              ),
+            )
+          ]
         );
       },
     );
@@ -78,32 +90,48 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void showConnectPartnersDialog() {
-    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .06);
+    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
     overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
         //partnerConnectAdvertiser = PartnerConnect(deviceType: DeviceType.advertiser, link: layerLink, offset: dialogOffset, dialogWidth: dialogWidth, dialogHeight: dialogHeight, overlayEntry: overlayEntry);
-        return Positioned(
-          width: dialogWidth,
-          height: dialogHeight,
-          top: 0.0,
-          left: 0.0,
-          child: PartnerConnect(
-              // flutterReactiveBle: flutterReactiveBle,
-              // callback: (deviceList)=> setState(() {
-              //   connectedDevices = deviceList;
-              // }),
-              // connectedDevices: connectedDevices,
-              deviceType: DeviceType.advertiser,
-              offset: dialogOffset,
-              link: layerLink,
-              dialogWidth: dialogWidth,
-              dialogHeight: dialogHeight,
-              overlayEntry: overlayEntry
-          ),
+        return Stack(
+          children: <Widget>[
+            Positioned.fill(
+                child: GestureDetector(
+                  onTap: dismissMenu,
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                )
+            ),
+            Positioned(
+              width: dialogWidth,
+              height: dialogHeight,
+              top: 0.0,
+              left: 0.0,
+              child: PartnerConnect(
+                  // flutterReactiveBle: flutterReactiveBle,
+                  // callback: (deviceList)=> setState(() {
+                  //   connectedDevices = deviceList;
+                  // }),
+                  // connectedDevices: connectedDevices,
+                  deviceType: DeviceType.advertiser,
+                  offset: dialogOffset,
+                  link: layerLink,
+                  dialogWidth: dialogWidth,
+                  dialogHeight: dialogHeight,
+                  overlayEntry: overlayEntry
+              ),
+            )
+          ],
         );
       },
     );
     Overlay.of(context)?.insert(overlayEntry);
+  }
+
+  void dismissMenu() {
+    overlayEntry.remove();
   }
 
   // BleSensorDevice? device;
