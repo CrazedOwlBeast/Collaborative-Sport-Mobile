@@ -362,7 +362,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         children: [
                           Icon(Icons.power, size: 30,),
                           Text(
-                            "$power",
+                            "$peerHeartRate",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                           ),

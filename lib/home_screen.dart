@@ -155,10 +155,16 @@ class _HomeScreenState extends State<HomeScreen> {
   // Function to get permissions.
   void _getPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetooth,
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
       Permission.bluetoothAdvertise,
       Permission.location,
+      Permission.locationAlways,
+      Permission.nearbyWifiDevices,
+      Permission.sensors,
+      Permission.locationWhenInUse,
+      Permission.ignoreBatteryOptimizations,
     ].request();
   }
 

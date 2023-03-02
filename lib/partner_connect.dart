@@ -170,8 +170,8 @@ class _PartnerConnectState extends State<PartnerConnect> {
               await nearbyService.stopAdvertisingPeer();
               await nearbyService.stopBrowsingForPeers();
               await Future.delayed(Duration(microseconds: 200));
-              await nearbyService.startAdvertisingPeer();
-              await nearbyService.startBrowsingForPeers();
+              nearbyService.startAdvertisingPeer();
+              nearbyService.startBrowsingForPeers();
           }
         });
     subscription = BluetoothManager.instance.startStateSubscription();
