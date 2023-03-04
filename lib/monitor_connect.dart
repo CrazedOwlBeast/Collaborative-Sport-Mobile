@@ -139,7 +139,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                 .connectionState}');
                           });
 
-                          if (device.serviceUuids.any((service) => service == HEART_RATE_SERVICE_UUID)) {
+                          if (device.serviceUuids.any((service) => service == HEART_RATE_SERVICE_UUID || service == Uuid.parse("0000180d-0000-1000-8000-00805f9b34fb"))) {
                             connectedSensor = BleSensorDevice(
                               type: 'HR',
                               flutterReactiveBle: flutterReactiveBle,
@@ -147,8 +147,9 @@ class _MonitorConnectState extends State<MonitorConnect> {
                               serviceId: HEART_RATE_SERVICE_UUID,
                               characteristicId: HEART_RATE_CHARACTERISTIC,
                             );
+                            widget.connectedDevices.add(connectedSensor);
                           }
-                          else {
+                          else if (device.serviceUuids.any((service) => service == CYCLING_POWER_SERVICE_UUID || service == Uuid.parse("00001818-0000-1000-8000-00805f9b34fb"))) {
                             connectedSensor = BleSensorDevice(
                               type: 'POWER',
                               flutterReactiveBle: flutterReactiveBle,
@@ -156,8 +157,9 @@ class _MonitorConnectState extends State<MonitorConnect> {
                               serviceId: CYCLING_POWER_SERVICE_UUID,
                               characteristicId: CYCLING_POWER_CHARACTERISTIC,
                             );
+                            widget.connectedDevices.add(connectedSensor);
                           }
-                          widget.connectedDevices.add(connectedSensor);
+
                         }
                         else {
                           _connection.cancel();

@@ -164,6 +164,157 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       var screenWidth = MediaQuery.of(context).size.width;
       var screenHeight = MediaQuery.of(context).size.height;
 
+      var statsRow = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+          color: Colors.black,
+          child:
+              SizedBox(
+                width: screenWidth * .4,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 35,
+                      child:
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            width: screenWidth * .1,
+                            child: const Icon(Icons.heart_broken, size: 30, color: Colors.white60,),
+                          ),
+                          SizedBox(
+                            width: screenWidth * .15,
+                            child: Text(
+                              "$heartrate",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          SizedBox(
+                              width: screenWidth * .1,
+                              child: const Text(
+                                "bpm",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
+                              )
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 35,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            width: screenWidth * .1,
+                            child: const Icon(Icons.power, size: 30, color: Colors.white60,),
+                          ),
+                          SizedBox(
+                            width: screenWidth * .15,
+                            child: Text(
+                              "$power",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          SizedBox(
+                              width: screenWidth * .1,
+                              child: const Text(
+                                "W",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
+                              )
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  ],
+                ),
+              )
+
+          )
+        ],
+      );
+
+      if (BluetoothManager.instance.connectedDevices.isNotEmpty) {
+        statsRow.children.add(Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+            color: Colors.black,
+            child:
+            SizedBox(
+              width: screenWidth * .4,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 35,
+                    child:
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: screenWidth * .1,
+                          child: const Icon(Icons.heart_broken, size: 30, color: Colors.red,),
+                        ),
+                        SizedBox(
+                          width: screenWidth * .15,
+                          child: Text(
+                            "$peerHeartRate",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        SizedBox(
+                            width: screenWidth * .1,
+                            child: const Text(
+                              "bpm",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
+                            )
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 35,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: screenWidth * .1,
+                          child: const Icon(Icons.power, size: 30, color: Colors.red,),
+                        ),
+                        SizedBox(
+                          width: screenWidth * .15,
+                          child: Text(
+                            "$power",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        SizedBox(
+                            width: screenWidth * .1,
+                            child: const Text(
+                              "W",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
+                            )
+                        ),
+                      ],
+                    ),
+                  ),
+
+                ],
+              ),
+            )
+
+        ));
+      }
+
       return Scaffold(
         body: Column(
           children: [
@@ -325,57 +476,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             )
           ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.monitor_heart, size: 30,),
-                          Text(
-                            "$heartrate",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "bpm",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
-                ),
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.power, size: 30,),
-                          Text(
-                            "$peerHeartRate",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "W",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
-                ),
-              ],
-            ),
+            statsRow,
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

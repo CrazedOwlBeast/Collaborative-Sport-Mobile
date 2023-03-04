@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Permission.nearbyWifiDevices,
       Permission.sensors,
       Permission.locationWhenInUse,
-      Permission.ignoreBatteryOptimizations,
+      //Permission.ignoreBatteryOptimizations,
     ].request();
   }
 
