@@ -84,16 +84,16 @@ SPEC CHECKSUMS:
   flutter_ble_peripheral: e12ab87914fc1690b22bb26649e4f6698625f425
   flutter_nearby_connections: 68c6cb88dcbf781e74adac01f4e93b853a30ee34
   geolocator_apple: cc556e6844d508c95df1e87e3ea6fa4e58c50401
-  google_maps_flutter_ios: 66201f392bf62d500f07670a30488a247b9bb5b9
+  google_maps_flutter_ios: 53f75334bad87ccd0473f4b0142756169846b42b
   GoogleMaps: 025272d5876d3b32604e5c080dc25eaf68764693
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
-  path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
+  path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
   Protobuf: 120350fc38646e2dedc26f49ecba778184ea1de2
   reactive_ble_mobile: 9ce6723d37ccf701dbffd202d487f23f5de03b4c
   SwiftProtobuf: b02b5075dcf60c9f5f403000b3b0c202a11b6ae1
   SwiftyJSON: 6faa0040f8b59dead0ee07436cbf76b73c08fd08
-  url_launcher_ios: ae1517e5e344f5544fb090b079e11f399dfbe4d2
+  url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
 
 PODFILE CHECKSUM: 6d6125ca377c0c0eeae78712e6ad2fdd98282724
 

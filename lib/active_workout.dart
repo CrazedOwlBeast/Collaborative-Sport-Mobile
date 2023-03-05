@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -7,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
+import 'package:hello_world/completed_workout.dart';
 import 'package:hello_world/past_workouts.dart';
 
 import 'home_screen.dart';
@@ -25,6 +27,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
     //late final BleSensorDevice device;
     //late final List<BleSensorDevice> deviceList;
+    var rng = Random();
     Completer<GoogleMapController> controller1 = Completer();
     Duration duration = Duration();
     Timer? timer;
@@ -546,7 +549,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
                             // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const PastWorkouts()));
+                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
                           });
                         },
                         onPressed: null,
