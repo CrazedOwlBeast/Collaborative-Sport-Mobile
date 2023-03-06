@@ -9,6 +9,7 @@ import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
 import 'package:hello_world/completed_workout.dart';
+import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/past_workouts.dart';
 
 import 'home_screen.dart';
@@ -17,7 +18,13 @@ class ActiveWorkout extends StatefulWidget {
   final FlutterReactiveBle flutterReactiveBle;
   final List<BleSensorDevice>? deviceList;
   final AppLogger logger;
-  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.deviceList, required this.logger});
+  final String exerciseType;
+  const ActiveWorkout({super.key,
+    required this.flutterReactiveBle,
+    required this.deviceList,
+    required this.logger,
+    required this.exerciseType,
+  });
 
   @override
   State<ActiveWorkout> createState() => _ActiveWorkoutState();
@@ -51,7 +58,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       super.initState();
       _getUserLocation();
       startTimer();
-
+      debugPrint('Exercise Type = ${widget.exerciseType}');
       if (widget.deviceList != null) {
         for (BleSensorDevice device in widget.deviceList!) {
           if (device.type == 'HR') {

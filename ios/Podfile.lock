@@ -1,6 +1,8 @@
 PODS:
   - device_info (0.0.1):
     - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_ble_peripheral (0.0.3):
     - Flutter
@@ -36,6 +38,7 @@ PODS:
 
 DEPENDENCIES:
   - device_info (from `.symlinks/plugins/device_info/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_ble_peripheral (from `.symlinks/plugins/flutter_ble_peripheral/ios`)
   - flutter_nearby_connections (from `.symlinks/plugins/flutter_nearby_connections/ios`)
@@ -57,6 +60,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   device_info:
     :path: ".symlinks/plugins/device_info/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
   flutter_ble_peripheral:
@@ -80,6 +85,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
+  device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_ble_peripheral: e12ab87914fc1690b22bb26649e4f6698625f425
   flutter_nearby_connections: 68c6cb88dcbf781e74adac01f4e93b853a30ee34

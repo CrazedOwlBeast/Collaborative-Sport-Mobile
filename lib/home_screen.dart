@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/ble_sensor_device.dart';
+import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/partner_connect.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -54,6 +55,42 @@ class _HomeScreenState extends State<HomeScreen> {
   // Create logger for entire app.
   static LoggerDevice device = LoggerDevice();
   static AppLogger logger = AppLogger();
+
+  void showExerciseTypeDialog() {
+    dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
+    overlayEntry = OverlayEntry(
+      builder: (BuildContext context) {
+        return Stack(
+            children: <Widget>[
+              Positioned.fill(
+                  child: GestureDetector(
+                    onTap: dismissMenu,
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  )
+              ),
+              Positioned(
+                width: dialogWidth,
+                height: dialogHeight,
+                top: 0.0,
+                left: 0.0,
+                child: ExerciseType(
+                    offset: dialogOffset,
+                    link: layerLink,
+                    dialogWidth: dialogWidth,
+                    dialogHeight: dialogHeight,
+                    overlayEntry: overlayEntry,
+                    logger: logger,
+                    callBack: setExerciseType,
+                ),
+              )
+            ]
+        );
+      },
+    );
+    Overlay.of(context).insert(overlayEntry);
+  }
 
   void showConnectMonitorsDialog() {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
@@ -143,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // BleSensorDevice? device;
   List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
+  String exerciseType = "";
   
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
@@ -221,6 +259,10 @@ class _HomeScreenState extends State<HomeScreen> {
     this.connectedDevices = deviceList;
   }
 
+  void setExerciseType(String type) {
+    this.exerciseType = type;
+  }
+
   // Function to show dialog when action buttons are pressed.
   // TODO: Make stateful?
   _showDialog(BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
@@ -280,7 +322,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () {
-                              _showDialog(context, "exerciseType", flutterReactiveBle);
+                            showExerciseTypeDialog();
+                              //_showDialog(context, "exerciseType", flutterReactiveBle);
                             // Navigator.of(context).push(
                             //     MaterialPageRoute(builder: (context) => const ExerciseType()));
                           },
@@ -340,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
                         logger.loggerEvents.events.add(loggedEvent);
-                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices));
+                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices, exerciseType));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(Colors.green) ,
@@ -417,9 +460,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 
-Route _createRoute(FlutterReactiveBle ble, List<BleSensorDevice>? connectedDevices) {
+Route _createRoute(FlutterReactiveBle ble, List<BleSensorDevice>? connectedDevices, String type) {
   return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, deviceList: connectedDevices, logger: _HomeScreenState.logger,),
+    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, deviceList: connectedDevices, logger: _HomeScreenState.logger, exerciseType: type),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
