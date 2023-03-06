@@ -497,12 +497,24 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       setState(() {
                         if(pauseWorkout)
                         {
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 7));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          loggedEvent.buttonName = "pause_workout";
+                          loggedEvent.processEvent();
+                          widget.logger.loggerEvents.events.add(loggedEvent);
+
                           timer?.cancel();
                           pauseWorkout = !pauseWorkout;
                           stopWorkout = !stopWorkout;
                         }
                         else
                         {
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 8));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          loggedEvent.buttonName = "resume_workout";
+                          loggedEvent.processEvent();
+                          widget.logger.loggerEvents.events.add(loggedEvent);
+
                           startTimer();
                           pauseWorkout = !pauseWorkout;
                           stopWorkout = !stopWorkout;
@@ -529,6 +541,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         onLongPress: () {
                           setState(() {
                             widget.logger.toJson();
+
+
 
                             // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(

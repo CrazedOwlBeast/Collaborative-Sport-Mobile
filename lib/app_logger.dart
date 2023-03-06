@@ -1,4 +1,3 @@
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 
@@ -51,7 +50,7 @@ class LoggerWorkout {
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
   void logHeartRate(int heartRate) {
     loggerHeartRate.data.add(LoggerWorkoutData(value: heartRate));
-    // debugPrint("Heartrate logged: $heartRate");
+    // debugPrint("HeartRate logged: $heartRate");
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerDistance.data.
@@ -89,28 +88,43 @@ class LoggerEvents {
 // Class for app events.
 class LoggerEvent {
   final int eventType;
-  String? timestamp;
-  String? buttonName;
+  String timestamp = "";
+
+  String buttonName = "";
+  String workoutType = "";
+  String bleDeviceName = "";
+  String partnerName = "";
+  String partnerDeviceId = "";
+  Map<String, dynamic> json = {};
 
 
-  LoggerEvent({required this.eventType, this.buttonName}) {
+  LoggerEvent({required this.eventType}) {
     // Every event has a timestamp.
-    timestamp = DateTime.now().millisecondsSinceEpoch.toString();  // TODO: Is this the correct timestamp format?
+    timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch
+        .toString(); // TODO: Is this the correct timestamp format?
 
+    json['event_type'] = eventType;
+    json['time'] = timestamp;
+  }
+
+  void processEvent() {
     switch (eventType) {
       // App is launched.
       case 0: {
         // TODO: Log starting page/closing page name (if applicable)
       } break;
 
-       // App is closed.
+      // App is closed.
       case 1: {
         // TODO: Log starting page/closing page name (if applicable)
       } break;
 
       // Button is pressed.
+      // TODO: Call on every button press :(
       case 2: {
-        // TODO: Log the button name
+        json['button_name'] = buttonName;
       } break;
 
       // Page is switched.
@@ -133,63 +147,63 @@ class LoggerEvent {
         // TODO: Just log the timestamp and type of workout.
       } break;
 
-      // Workout is paused.
+      // Workout is paused. Only records timestamp.
       case 7: {
-        // TODO: Log timestamp only.
+
       } break;
 
-      // Workout is unpaused.
+      // Workout is unpaused. Only records timestamp.
       case 8: {
-        // TODO: Log timestamp only.
+
       } break;
 
+      // TODO: Make sure partner_device_id makes sense.
       // Partner is connected.
       case 9: {
-        // TODO: Log their device id and their name if possible
+        json['partner_name'] = partnerName;
+        json['partner_device_id'] = partnerDeviceId;
       } break;
 
       // Partner is disconnected.
       case 10: {
-        // TODO: Log their device id and their name if possible
+        json['partner_name'] = partnerName;
+        json['partner_device_id'] = partnerDeviceId;
       } break;
 
+      // Bluetooth scan started. Only records timestamp.
       case 11: {
-        // TODO: Log timestamp only.
+
       } break;
 
       // BLE device connected.
       case 12: {
-        // TODO: Log name of the device that was connected/disconnected
+        json['device_name'] = bleDeviceName;
       } break;
 
       // BLE device disconnected.
+      // TODO: Specs from analytics group should call for device type in separate field.?
       case 13: {
-        // TODO: Log name of the device that was connected/disconnected
+        json['device_name'] = bleDeviceName;
       } break;
     }
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
-    json['event_type'] = eventType;
-    json['time'] = timestamp;
-
     return json;
   }
-
 }
 
 // Class for basic info about a user/device.
 class LoggerDevice {
-  String? name;
-  String? deviceId;
-  String? serialNumber;
+  String name = "";
+  String deviceId = "";
+  String serialNumber = "";
 }
 
 // Class to store heart rate data.
 class LoggerHeartRate {
   String units = "";
-  int? maxHeartRate;
+  String maxHeartRate = "";
   List<LoggerWorkoutData> data = [];
 
   Map<String, dynamic> toJson() {

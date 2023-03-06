@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:device_info/device_info.dart';
@@ -85,14 +84,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   link: layerLink,
                   dialogWidth: dialogWidth,
                   dialogHeight: dialogHeight,
-                  overlayEntry: overlayEntry
+                  overlayEntry: overlayEntry,
+                  logger: logger
               ),
             )
           ]
         );
       },
     );
-    Overlay.of(context)?.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void showConnectPartnersDialog() {
@@ -126,14 +126,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   link: layerLink,
                   dialogWidth: dialogWidth,
                   dialogHeight: dialogHeight,
-                  overlayEntry: overlayEntry
+                  overlayEntry: overlayEntry,
+                  logger: logger,
               ),
             )
           ],
         );
       },
     );
-    Overlay.of(context)?.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void dismissMenu() {
@@ -162,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      device.deviceId = androidInfo.fingerprint;
+      device.deviceId = androidInfo.androidId;
       // device.serialNumber = androidInfo.;
     }
 
@@ -337,6 +338,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
+                        LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                        logger.loggerEvents.events.add(loggedEvent);
                         Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices));
                       },
                       style: ButtonStyle(
