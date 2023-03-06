@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
 import 'package:hello_world/past_workouts.dart';
@@ -13,7 +14,8 @@ import 'home_screen.dart';
 class ActiveWorkout extends StatefulWidget {
   final FlutterReactiveBle flutterReactiveBle;
   final List<BleSensorDevice>? deviceList;
-  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.deviceList});
+  final AppLogger logger;
+  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.deviceList, required this.logger});
 
   @override
   State<ActiveWorkout> createState() => _ActiveWorkoutState();
@@ -57,8 +59,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     deviceId: device.deviceId
                 )).listen((event) {
               setState(() {
+                // Update UI.
                 heartrate = event[1];
+                // Broadcast heartrate to partner.
                 BluetoothManager.instance.broadcastString('0: $heartrate');
+                // Log heartrate.
+                widget.logger.workout.logHeartRate(event[1]);
               });
             });
           }
@@ -522,6 +528,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         ),
                         onLongPress: () {
                           setState(() {
+                            widget.logger.toJson();
+
                             // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(
                                 MaterialPageRoute(builder: (context) => const PastWorkouts()));

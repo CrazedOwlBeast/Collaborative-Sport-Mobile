@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -14,6 +16,7 @@ import 'active_workout.dart';
 import 'monitor_connect.dart';
 import 'settings.dart';
 import 'past_workouts.dart';
+import 'app_logger.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late Offset dialogOffset;
   late PartnerConnect partnerConnectAdvertiser;
 
+  // Create logger for entire app.
+  static LoggerDevice device = LoggerDevice();
+  static AppLogger logger = AppLogger();
 
   void showConnectMonitorsDialog() {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
@@ -144,12 +150,26 @@ class _HomeScreenState extends State<HomeScreen> {
   final flutterReactiveBle = FlutterReactiveBle();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _getPermissions();  // TODO: Wait for permissions before getting location. (affects first run)
     _getUserLocation();
+    _getDeviceInfo();
+    logger.userDevice = device;
+  }
 
+  void _getDeviceInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      device.deviceId = androidInfo.fingerprint;
+      // device.serialNumber = androidInfo.;
+    }
 
+    else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      device.deviceId = iosInfo.utsname.machine;  // TODO: Not sure how to get UUID for iOS
+    }
   }
 
   // Function to get permissions.
@@ -396,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 Route _createRoute(FlutterReactiveBle ble, List<BleSensorDevice>? connectedDevices) {
   return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, deviceList: connectedDevices,),
+    pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(flutterReactiveBle: ble, deviceList: connectedDevices, logger: _HomeScreenState.logger,),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
