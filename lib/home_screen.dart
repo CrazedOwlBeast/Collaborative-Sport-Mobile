@@ -382,7 +382,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ElevatedButton(
                       onPressed: () {
                         LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                        loggedEvent.workoutType = exerciseType;
+                        loggedEvent.processEvent();
                         logger.loggerEvents.events.add(loggedEvent);
+
                         Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices, exerciseType));
                       },
                       style: ButtonStyle(
