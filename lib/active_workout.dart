@@ -113,7 +113,13 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     @override
   void dispose() {
-      peerSubscription.cancel();
+      peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {});
+      if (subscribeStreamHR != null) {
+        subscribeStreamHR?.cancel();
+      }
+      if (subscribeStreamPower != null) {
+        subscribeStreamPower?.cancel();
+      }
     super.dispose();
   }
 
@@ -123,7 +129,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        //BluetoothManager.instance.broadcastString('0: ${80}');
+        //BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
         //BluetoothManager.instance.broadcastString('1: ${150}');
       });
     }

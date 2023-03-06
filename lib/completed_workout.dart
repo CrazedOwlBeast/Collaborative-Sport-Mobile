@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 import 'home_screen.dart';
@@ -16,16 +18,25 @@ class CompletedWorkout extends StatefulWidget {
 
 class _CompletedWorkoutState extends State<CompletedWorkout> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  //late var database;
 
 
   @override
-  void initState(){
+  void initState() {
+    // database = openDatabase(
+    //   join(await getDatabasesPath(), 'collaborative_sport.db'),
+    //   onCreate: (db, version) {
+    //       return db.execute(
+    //         'CREATE TABLE workout(name TEXT, workout_info TEXT)',
+    //       );
+    //   },
+    // );
     super.initState();
   }
 
   void _showDialog() {
     showDialog(
-        context: context,
+        context: this.context,
         builder: (BuildContext context) {
           return SimpleDialog(
               backgroundColor: Colors.white,

@@ -9,6 +9,9 @@ PODS:
   - flutter_nearby_connections (0.0.1):
     - Flutter
     - SwiftyJSON (~> 4.0)
+  - FMDB (2.7.5):
+    - FMDB/standard (= 2.7.5)
+  - FMDB/standard (2.7.5)
   - geolocator_apple (1.2.0):
     - Flutter
   - google_maps_flutter_ios (0.0.1):
@@ -31,6 +34,9 @@ PODS:
     - Flutter
     - Protobuf (~> 3.5)
     - SwiftProtobuf (~> 1.0)
+  - sqflite (0.0.2):
+    - Flutter
+    - FMDB (>= 2.7.5)
   - SwiftProtobuf (1.20.3)
   - SwiftyJSON (4.3.0)
   - url_launcher_ios (0.0.1):
@@ -48,10 +54,12 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - reactive_ble_mobile (from `.symlinks/plugins/reactive_ble_mobile/ios`)
+  - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
+    - FMDB
     - GoogleMaps
     - Protobuf
     - SwiftProtobuf
@@ -80,6 +88,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   reactive_ble_mobile:
     :path: ".symlinks/plugins/reactive_ble_mobile/ios"
+  sqflite:
+    :path: ".symlinks/plugins/sqflite/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
@@ -89,6 +99,7 @@ SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_ble_peripheral: e12ab87914fc1690b22bb26649e4f6698625f425
   flutter_nearby_connections: 68c6cb88dcbf781e74adac01f4e93b853a30ee34
+  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   geolocator_apple: cc556e6844d508c95df1e87e3ea6fa4e58c50401
   google_maps_flutter_ios: 53f75334bad87ccd0473f4b0142756169846b42b
   GoogleMaps: 025272d5876d3b32604e5c080dc25eaf68764693
@@ -97,6 +108,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
   Protobuf: 120350fc38646e2dedc26f49ecba778184ea1de2
   reactive_ble_mobile: 9ce6723d37ccf701dbffd202d487f23f5de03b4c
+  sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   SwiftProtobuf: b02b5075dcf60c9f5f403000b3b0c202a11b6ae1
   SwiftyJSON: 6faa0040f8b59dead0ee07436cbf76b73c08fd08
   url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
