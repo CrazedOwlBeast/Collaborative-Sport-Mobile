@@ -172,7 +172,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       setState(() {
         _initialPosition = position;
         _currentPosition = position;
-        // _points.add(LatLng(position.latitude, position.longitude));
+        _points.add(LatLng(position.latitude, position.longitude));
 
         if (controller != null) {
           controller!.animateCamera(CameraUpdate.newCameraPosition(
