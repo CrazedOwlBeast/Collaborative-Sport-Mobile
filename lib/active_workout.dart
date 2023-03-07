@@ -199,14 +199,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       Geolocator.getPositionStream().listen((position) {
         setState(() {
           _currentPosition = position;
+          _points.add(LatLng(position.latitude, position.longitude));
           _polyLines.add(Polyline(
             polylineId: PolylineId("workout_route"),
             color: Colors.blue,
             width: 5,
-            points: [
-              LatLng(_initialPosition!.latitude, _initialPosition!.longitude),
-              LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            ],
+            points: _points,
           ));
           distance = Geolocator.distanceBetween(
             _initialPosition!.latitude,
@@ -227,7 +225,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               _initialPosition!.longitude,
               _currentPosition!.latitude,
               _currentPosition!.longitude);
-          distance = distanceInMeters;
+          distance += distanceInMeters;
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
         }
       });
@@ -236,18 +234,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     _onMapCreated(GoogleMapController controller) {
       controller = controller;
     }
-
-    // void _getDistance(Position newPosition) {
-    //   final distanceInMeters = Geolocator.distanceBetween(
-    //       _initialPosition.latitude,
-    //       _initialPosition.longitude,
-    //       newPosition.latitude,
-    //       newPosition.longitude);
-    //   setState(() {
-    //     distance = distanceInMeters;
-    //     _points.add(LatLng(newPosition.latitude, newPosition.longitude));
-    //   });
-    // }
 
     @override
     Widget build(BuildContext context) {
