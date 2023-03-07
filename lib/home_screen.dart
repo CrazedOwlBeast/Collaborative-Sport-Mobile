@@ -47,6 +47,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  String name = "";
+  String maxHeartRate = "";
+
   late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
   late double dialogHeight = MediaQuery.of(context).size.height * .60;
   final LayerLink layerLink = LayerLink();
@@ -435,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body: Center(child: _children[_currentIndex]),
+      body: IndexedStack(children: _children, index: _currentIndex),
       bottomNavigationBar: SizedBox(
           height: MediaQuery.of(context).size.height *
               0.13, // navigation bar takes 12% of screen
