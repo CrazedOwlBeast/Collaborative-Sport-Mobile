@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hello_world/app_logger.dart';
 import 'ble_sensor_device.dart';
 import 'package:collection/collection.dart';
 
@@ -15,9 +16,11 @@ class MonitorConnect extends StatefulWidget {
   final Offset offset;
   final double dialogWidth;
   final double dialogHeight;
+  final AppLogger logger;
+
   const MonitorConnect({Key? key, required this.flutterReactiveBle,
     required this.callback, required this.connectedDevices, required this.link,
-    required this.offset, required this.dialogWidth, required this.dialogHeight, required this.overlayEntry}) : super(key: key);
+    required this.offset, required this.dialogWidth, required this.dialogHeight, required this.overlayEntry, required this.logger}) : super(key: key);
 
 
   @override
@@ -37,6 +40,8 @@ class _MonitorConnectState extends State<MonitorConnect> {
   //List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
   Color _colorTile = Colors.white;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +49,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
     //scan for sensors
     debugPrint('Begin scan');
     if (flutterReactiveBle.status == BleStatus.ready) {
+      widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
       //scanSubscription?.cancel();
       scanSubscription = flutterReactiveBle.scanForDevices(
           withServices: [HEART_RATE_SERVICE_UUID, CYCLING_POWER_SERVICE_UUID]).listen((device) {
@@ -139,7 +145,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                 .connectionState}');
                           });
 
-                          if (device.serviceUuids.any((service) => service == HEART_RATE_SERVICE_UUID)) {
+                          if (device.serviceUuids.any((service) => service == HEART_RATE_SERVICE_UUID || service == Uuid.parse("0000180d-0000-1000-8000-00805f9b34fb"))) {
                             connectedSensor = BleSensorDevice(
                               type: 'HR',
                               flutterReactiveBle: flutterReactiveBle,
@@ -147,8 +153,14 @@ class _MonitorConnectState extends State<MonitorConnect> {
                               serviceId: HEART_RATE_SERVICE_UUID,
                               characteristicId: HEART_RATE_CHARACTERISTIC,
                             );
+                            widget.connectedDevices.add(connectedSensor);
+
+                            LoggerEvent loggerEvent = LoggerEvent(eventType: 12);
+                            loggerEvent.bleDeviceName = 'heart rate monitor ${connectedSensor.deviceId}';
+                            loggerEvent.processEvent();
+                            widget.logger.loggerEvents.events.add(loggerEvent);
                           }
-                          else {
+                          else if (device.serviceUuids.any((service) => service == CYCLING_POWER_SERVICE_UUID || service == Uuid.parse("00001818-0000-1000-8000-00805f9b34fb"))) {
                             connectedSensor = BleSensorDevice(
                               type: 'POWER',
                               flutterReactiveBle: flutterReactiveBle,
@@ -156,12 +168,23 @@ class _MonitorConnectState extends State<MonitorConnect> {
                               serviceId: CYCLING_POWER_SERVICE_UUID,
                               characteristicId: CYCLING_POWER_CHARACTERISTIC,
                             );
+                            widget.connectedDevices.add(connectedSensor);
+
+                            LoggerEvent loggerEvent = LoggerEvent(eventType: 12);
+                            loggerEvent.bleDeviceName = 'power meter ${connectedSensor.deviceId}';
+                            loggerEvent.processEvent();
+                            widget.logger.loggerEvents.events.add(loggerEvent);
                           }
-                          widget.connectedDevices.add(connectedSensor);
+
                         }
                         else {
                           _connection.cancel();
                           widget.connectedDevices.removeWhere((element) => element.deviceId == device.id);
+
+                          LoggerEvent loggerEvent = LoggerEvent(eventType: 13);
+                          loggerEvent.bleDeviceName = device.id;
+                          loggerEvent.processEvent();
+                          widget.logger.loggerEvents.events.add(loggerEvent);
                         }
                         setState(() {
                           _colorTile = _colorTile == Colors.white ? Colors.green : Colors.white;
@@ -197,15 +220,21 @@ class _MonitorConnectState extends State<MonitorConnect> {
                 Positioned(
                   top: widget.dialogWidth * .05,
                   left: widget.dialogWidth * .15,
-                  child: Text('Discovered Devices:',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.openSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          height: 1.7,
-                          color: Colors.white
-                      )
-                  ),
+                  height: widget.dialogHeight*.12,
+                  width: widget.dialogWidth*.6,
+                  child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                    alignment: Alignment.topLeft,
+                    child: Text('Discovered Devices:',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.openSans(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            height: 1.7,
+                            color: Colors.white
+                        )
+                    ),
+                  )
                 )
               ],
             ),

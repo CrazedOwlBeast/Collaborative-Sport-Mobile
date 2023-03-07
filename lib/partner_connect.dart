@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/bluetooth_manager.dart';
 
 enum DeviceType { advertiser, browser }
@@ -18,9 +17,10 @@ class PartnerConnect extends StatefulWidget {
   final double dialogWidth;
   final double dialogHeight;
   final OverlayEntry overlayEntry;
+  final AppLogger logger;
 
   const PartnerConnect({super.key, required this.deviceType, required this.link,
-            required this.offset, required this.dialogWidth, required this.dialogHeight, required this.overlayEntry});
+            required this.offset, required this.dialogWidth, required this.dialogHeight, required this.overlayEntry, required this.logger});
 
   @override
   State<PartnerConnect> createState() => _PartnerConnectState();
@@ -167,11 +167,13 @@ class _PartnerConnectState extends State<PartnerConnect> {
         strategy: Strategy.P2P_CLUSTER,
         callback: (isRunning) async {
           if (isRunning) {
+              widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
+
               await nearbyService.stopAdvertisingPeer();
               await nearbyService.stopBrowsingForPeers();
               await Future.delayed(Duration(microseconds: 200));
-              await nearbyService.startAdvertisingPeer();
-              await nearbyService.startBrowsingForPeers();
+              nearbyService.startAdvertisingPeer();
+              nearbyService.startBrowsingForPeers();
           }
         });
     subscription = BluetoothManager.instance.startStateSubscription();
@@ -182,9 +184,21 @@ class _PartnerConnectState extends State<PartnerConnect> {
 
         if (element.state == SessionState.connected && !BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
           BluetoothManager.instance.connectedDevices[element.deviceId] = element;
+
+          LoggerEvent loggerEvent = LoggerEvent(eventType: 9);
+          loggerEvent.partnerDeviceId = element.deviceName;
+          loggerEvent.partnerDeviceId = element.deviceId;
+          loggerEvent.processEvent();
+          widget.logger.loggerEvents.events.add(loggerEvent);
         }
         if (element.state == SessionState.notConnected && BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
           BluetoothManager.instance.connectedDevices.remove(element.deviceId);
+
+          LoggerEvent loggerEvent = LoggerEvent(eventType: 10);
+          loggerEvent.partnerDeviceId = element.deviceName;
+          loggerEvent.partnerDeviceId = element.deviceId;
+          loggerEvent.processEvent();
+          widget.logger.loggerEvents.events.add(loggerEvent);
         }
       });
       setState(() {
@@ -320,15 +334,21 @@ class _PartnerConnectState extends State<PartnerConnect> {
                         Positioned(
                           top: widget.dialogWidth * .05,
                           left: widget.dialogWidth * .15,
-                          child: Text('Discovered Partners:',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.openSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.7,
-                                  color: Colors.white
-                              )
-                          ),
+                            height: widget.dialogHeight*.12,
+                            width: widget.dialogWidth*.6,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: Text('Discovered Partners:',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.openSans(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.7,
+                                      color: Colors.white
+                                  )
+                              ),
+                            )
                         )
                       ],
                     ),

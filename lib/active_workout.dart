@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
+import 'package:hello_world/completed_workout.dart';
+import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/past_workouts.dart';
 
 import 'home_screen.dart';
@@ -13,7 +19,14 @@ import 'home_screen.dart';
 class ActiveWorkout extends StatefulWidget {
   final FlutterReactiveBle flutterReactiveBle;
   final List<BleSensorDevice>? deviceList;
-  const ActiveWorkout({super.key, required this.flutterReactiveBle, required this.deviceList});
+  final AppLogger logger;
+  final String exerciseType;
+  const ActiveWorkout({super.key,
+    required this.flutterReactiveBle,
+    required this.deviceList,
+    required this.logger,
+    required this.exerciseType,
+  });
 
   @override
   State<ActiveWorkout> createState() => _ActiveWorkoutState();
@@ -21,9 +34,8 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
-    //late final BleSensorDevice device;
-    //late final List<BleSensorDevice> deviceList;
-    Completer<GoogleMapController> controller1 = Completer();
+    var rng = Random();
+    GoogleMapController? controller;
     Duration duration = Duration();
     Timer? timer;
     double speed = 0.0;
@@ -37,16 +49,24 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
 
-    static LatLng? _initialPosition;
-    static LatLng? _finalPosition;
+    Position? _initialPosition;
+    Position? _currentPosition;
+    List<LatLng> _points = [];
+    Set<Polyline> _polyLines = {};
+    late StreamSubscription<Position> _positionStreamSubscription;
+
     StreamSubscription<List<int>>? subscribeStreamHR;
     StreamSubscription<List<int>>? subscribeStreamPower;
     @override
     void initState(){
       super.initState();
-      _getUserLocation();
+      // _getUserLocation();
+      _getCurrentLocation();
+      _positionStreamSubscription = Geolocator.getPositionStream(
+          locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
+          .listen(_onPositionUpdate);
       startTimer();
-
+      debugPrint('Exercise Type = ${widget.exerciseType}');
       if (widget.deviceList != null) {
         for (BleSensorDevice device in widget.deviceList!) {
           if (device.type == 'HR') {
@@ -57,8 +77,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     deviceId: device.deviceId
                 )).listen((event) {
               setState(() {
+                // Update UI.
                 heartrate = event[1];
+                // Broadcast heartrate to partner.
                 BluetoothManager.instance.broadcastString('0: $heartrate');
+                // Log heartrate.
+                widget.logger.workout.logHeartRate(event[1]);
               });
             });
           }
@@ -97,8 +121,18 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     @override
   void dispose() {
-      peerSubscription.cancel();
+      peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {});
+      if (subscribeStreamHR != null) {
+        subscribeStreamHR?.cancel();
+      }
+      if (subscribeStreamPower != null) {
+        subscribeStreamPower?.cancel();
+      }
     super.dispose();
+
+      if(_positionStreamSubscription != null) {
+        _positionStreamSubscription.cancel();
+      }
   }
 
     void addTime() {
@@ -107,7 +141,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        //BluetoothManager.instance.broadcastString('0: ${80}');
+        //BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
         //BluetoothManager.instance.broadcastString('1: ${150}');
       });
     }
@@ -120,17 +154,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       this.speed = (this.speed + speed)/2;
     }
 
-    void _getUserLocation() async {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      setState(() {
-        _initialPosition = LatLng(position.latitude, position.longitude);
-      });
-    }
 
     void _currentLocation() async {
-      final GoogleMapController controller = await controller1.future;
+      final GoogleMapController? cntrl = controller;
       Position position = await Geolocator.getCurrentPosition();
-      controller.animateCamera(CameraUpdate.newCameraPosition(
+      cntrl!.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng(position.latitude, position.longitude),
           zoom: 15.0,
@@ -138,18 +166,87 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ));
     }
 
-    _onMapCreated(GoogleMapController controller) {
+    void _getCurrentLocation() async {
+      final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       setState(() {
-        controller1.complete(controller);
+        _initialPosition = position;
+        _currentPosition = position;
+        // _points.add(LatLng(position.latitude, position.longitude));
+
+        if (controller != null) {
+          controller!.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: 15,
+            ),
+          ));
+
+          _polyLines.add(Polyline(
+            polylineId: const PolylineId('userRoute'),
+            visible: true,
+            points: [
+              LatLng(_initialPosition!.latitude, _initialPosition!.longitude)
+            ],
+            color: Colors.blue,
+            width: 5,));
+        }
+      });
+      _listenToLocationChanges();
+    }
+
+    void _listenToLocationChanges() {
+      Geolocator.getPositionStream().listen((position) {
+        setState(() {
+          _currentPosition = position;
+          _polyLines.add(Polyline(
+            polylineId: PolylineId("workout_route"),
+            color: Colors.blue,
+            width: 5,
+            points: [
+              LatLng(_initialPosition!.latitude, _initialPosition!.longitude),
+              LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            ],
+          ));
+          distance = Geolocator.distanceBetween(
+            _initialPosition!.latitude,
+            _initialPosition!.longitude,
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+          );
+        });
       });
     }
-    // TODO: Update distance and display it
-    // void _getDistance() {
-    //   distance = Geolocator.distanceBetween(
-    //       _initialPosition!.latitude,
-    //       _initialPosition!.longitude,
-    //       _finalPosition!.latitude,
-    //       _finalPosition!.longitude);
+
+    void _onPositionUpdate(Position newPosition) {
+      setState(() {
+        _currentPosition = newPosition;
+        if(_initialPosition != null) {
+          final distanceInMeters = Geolocator.distanceBetween(
+              _initialPosition!.latitude,
+              _initialPosition!.longitude,
+              _currentPosition!.latitude,
+              _currentPosition!.longitude);
+          distance = distanceInMeters;
+          _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+        }
+      });
+    }
+
+    _onMapCreated(GoogleMapController controller) {
+      controller = controller;
+    }
+
+    // void _getDistance(Position newPosition) {
+    //   final distanceInMeters = Geolocator.distanceBetween(
+    //       _initialPosition.latitude,
+    //       _initialPosition.longitude,
+    //       newPosition.latitude,
+    //       newPosition.longitude);
+    //   setState(() {
+    //     distance = distanceInMeters;
+    //     _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+    //   });
     // }
 
     @override
@@ -164,21 +261,192 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       var screenWidth = MediaQuery.of(context).size.width;
       var screenHeight = MediaQuery.of(context).size.height;
 
+      var statsRow = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
+          color: Colors.black,
+          child:
+              SizedBox(
+                width: screenWidth * .5,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 45,
+                      child:
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            width: screenWidth * .1,
+                            child: const Icon(Icons.heart_broken, size: 30, color: Colors.white60,),
+                          ),
+                          SizedBox(
+                            width: screenWidth * .15,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                            child: Text(
+                              "$heartrate",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                            ),)
+                          ),
+                          SizedBox(
+                              width: screenWidth * .1,
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                              child: Text(
+                                "bpm",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
+                              ))
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 35,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            width: screenWidth * .1,
+                            child: const Icon(Icons.electric_bolt_sharp, size: 30, color: Colors.white60,),
+                          ),
+                          SizedBox(
+                            width: screenWidth * .15,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                            child: Text(
+                              "$power",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                            ),)
+                          ),
+                          SizedBox(
+                              width: screenWidth * .1,
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                              child: Text(
+                                "W",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
+                              ))
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  ],
+                ),
+              )
+
+          )
+        ],
+      );
+
+      if (BluetoothManager.instance.connectedDevices.isNotEmpty) {
+        statsRow.children.add(Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
+            color: Colors.black,
+            child:
+            SizedBox(
+              width: screenWidth * .5,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 45,
+                    child:
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: screenWidth * .1,
+                          child: const Icon(Icons.heart_broken, size: 30, color: Colors.red,),
+                        ),
+                        SizedBox(
+                          width: screenWidth * .15,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                            "$peerHeartRate",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
+                          ),)
+                        ),
+                        SizedBox(
+                            width: screenWidth * .1,
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                              "bpm",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
+                            ))
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 35,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: screenWidth * .1,
+                          child: const Icon(Icons.electric_bolt_sharp, size: 30, color: Colors.red,),
+                        ),
+                        SizedBox(
+                          width: screenWidth * .15,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                            "$peerPower",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
+                          ),)
+                        ),
+                        SizedBox(
+                            width: screenWidth * .1,
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                              "W",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
+                            ))
+                        ),
+                      ],
+                    ),
+                  ),
+
+                ],
+              ),
+            )
+
+        ));
+      }
+
       return Scaffold(
         body: Column(
           children: [
             SizedBox(
             height: screenHeight * 0.52,
             width: screenWidth,
-            child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
+            child:
+            _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
               Stack(
                 children: [
                   GoogleMap(
-                    initialCameraPosition: CameraPosition(target: _initialPosition!, zoom: 15),
+                    initialCameraPosition: CameraPosition(target: LatLng(_initialPosition!.latitude, _initialPosition!.longitude), zoom: 15),
                     mapType: MapType.normal,
                     onMapCreated: _onMapCreated,
                     myLocationEnabled: true,
                     myLocationButtonEnabled: false,
+                    gestureRecognizers: Set()
+                      ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
+                    polylines: _polyLines
                   ),
                   Padding(
                       padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
@@ -218,9 +486,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 child: DecoratedBox(
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             ElevatedButton(
                               onPressed: () {
@@ -265,7 +533,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: _changeDistance ?
                                 RichText(
                                   text: TextSpan(
-                                    text: ' ${(distance / 1609).toStringAsFixed(2)}',
+                                    text: ' ${(distance > 15 ? (distance / 1609).toStringAsFixed(2) : 0.0)}',
                                     style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                     children: const [
                                       TextSpan(
@@ -274,7 +542,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       )]))  :
                                 RichText(
                                   text: TextSpan(
-                                      text: ' ${(distance / 1000).toStringAsFixed(2)}',
+                                      text: ' ${(distance > 15 ? (distance / 1000).toStringAsFixed(2) : 0.0)}',
                                       style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
@@ -300,7 +568,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: _changeDistance ?
                                 RichText(
                                     text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1609)).toStringAsFixed(2)}',
+                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1609) / 60).toStringAsFixed(2) : 0)}',
                                         style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
@@ -309,7 +577,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                           )]))  :
                                 RichText(
                                     text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1000)).toStringAsFixed(2)}',
+                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1000) / 60).toStringAsFixed(2) : 0)}',
                                         style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
@@ -325,57 +593,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             )
           ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.monitor_heart, size: 30,),
-                          Text(
-                            "$heartrate",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "bpm",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
-                ),
-                CircleAvatar(
-                  //padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-                    radius: 60,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child:
-                    Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.power, size: 30,),
-                          Text(
-                            "$power",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            "W",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                          )
-                        ]
-                    )
-                ),
-              ],
-            ),
+            statsRow,
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -390,12 +608,24 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       setState(() {
                         if(pauseWorkout)
                         {
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 7));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          loggedEvent.buttonName = "pause_workout";
+                          loggedEvent.processEvent();
+                          widget.logger.loggerEvents.events.add(loggedEvent);
+
                           timer?.cancel();
                           pauseWorkout = !pauseWorkout;
                           stopWorkout = !stopWorkout;
                         }
                         else
                         {
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 8));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          loggedEvent.buttonName = "resume_workout";
+                          loggedEvent.processEvent();
+                          widget.logger.loggerEvents.events.add(loggedEvent);
+
                           startTimer();
                           pauseWorkout = !pauseWorkout;
                           stopWorkout = !stopWorkout;
@@ -421,9 +651,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         ),
                         onLongPress: () {
                           setState(() {
-                            // TODO: grab all information before transitioning to new screen
+                            widget.logger.toJson();
                             Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const PastWorkouts()));
+                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
                           });
                         },
                         onPressed: null,

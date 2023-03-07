@@ -45,7 +45,8 @@ class _PastWorkoutsState extends State<PastWorkouts> {
                     fontSize: 45
                 )
               ),
-              getPreviousWorkouts()]
+              getPreviousWorkouts()
+                ]
               )
               ),
 
