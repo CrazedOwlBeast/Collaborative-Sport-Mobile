@@ -95,12 +95,13 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                     )
                                 ),
                                 onPressed: () {
-                                  //TODO Set exercise type to walking
                                   _setColor('Walking');
                                   widget.callBack('Walking');
                                 },
-                                child: Wrap(
-                                  spacing: 90,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Wrap(
+                                  spacing: widget.dialogWidth*.25,
                                   alignment: WrapAlignment.spaceEvenly,
                                   children: [
                                     const Icon(Icons.directions_walk_outlined, size: 50,),
@@ -111,6 +112,7 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                         height: 1.7
                                     )),
                                   ],
+                                )
                                 )
                             ),
                             ElevatedButton(
@@ -125,12 +127,13 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                     )
                                 ),
                                 onPressed: () {
-                                  //TODO Set exercise type to running
                                   _setColor('Running');
                                   widget.callBack('Running');
                                 },
-                                child: Wrap(
-                                  spacing: 90,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Wrap(
+                                  spacing: widget.dialogWidth*.25,
                                   alignment: WrapAlignment.spaceEvenly,
                                   children: [
                                     const Icon(Icons.directions_run_outlined, size: 50,),
@@ -140,6 +143,7 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                         height: 1.7
                                     )),
                                   ],
+                                )
                                 )
                             ),
                             ElevatedButton(
@@ -154,12 +158,13 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                     )
                                 ),
                                 onPressed: () {
-                                  //TODO Set exercise type to cycling
                                   _setColor('Cycling');
                                   widget.callBack('Cycling');
                                 },
-                                child: Wrap(
-                                  spacing: 100,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Wrap(
+                                  spacing: widget.dialogWidth*.25,
                                   alignment: WrapAlignment.spaceEvenly,
                                   children: [
                                     const Icon(Icons.directions_bike_outlined, size: 50,),
@@ -169,6 +174,7 @@ class _ExerciseTypeState extends State<ExerciseType> {
                                         height: 1.7
                                     )),
                                   ],
+                                )
                                 )
                             ),
                           ],
@@ -180,7 +186,7 @@ class _ExerciseTypeState extends State<ExerciseType> {
                 ],
               )
           ),
-          Container(
+          SizedBox(
             height: widget.dialogHeight * 0.15,
             child: Stack(
               children: [
@@ -200,7 +206,12 @@ class _ExerciseTypeState extends State<ExerciseType> {
                 Positioned(
                   top: widget.dialogWidth * .05,
                   left: widget.dialogWidth * .15,
-                  child: Text('Select exercise type:',
+                  height: widget.dialogHeight*.12,
+                  width: widget.dialogWidth*.6,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.topLeft,
+                    child: Text('Select exercise type:',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.openSans(
                           fontSize: 20,
@@ -209,6 +220,7 @@ class _ExerciseTypeState extends State<ExerciseType> {
                           color: Colors.white
                       )
                   ),
+                  )
                 )
               ],
             ),

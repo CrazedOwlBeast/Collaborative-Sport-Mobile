@@ -334,15 +334,21 @@ class _PartnerConnectState extends State<PartnerConnect> {
                         Positioned(
                           top: widget.dialogWidth * .05,
                           left: widget.dialogWidth * .15,
-                          child: Text('Discovered Partners:',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.openSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.7,
-                                  color: Colors.white
-                              )
-                          ),
+                            height: widget.dialogHeight*.12,
+                            width: widget.dialogWidth*.6,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: Text('Discovered Partners:',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.openSans(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.7,
+                                      color: Colors.white
+                                  )
+                              ),
+                            )
                         )
                       ],
                     ),

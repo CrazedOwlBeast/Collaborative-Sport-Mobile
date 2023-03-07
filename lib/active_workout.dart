@@ -209,19 +209,23 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                           ),
                           SizedBox(
                             width: screenWidth * .15,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
                             child: Text(
                               "$heartrate",
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                            ),
+                            ),)
                           ),
                           SizedBox(
                               width: screenWidth * .1,
-                              child: const Text(
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                              child: Text(
                                 "bpm",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
-                              )
+                              ))
                           ),
                         ],
                       ),
@@ -233,23 +237,27 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         children: [
                           SizedBox(
                             width: screenWidth * .1,
-                            child: const Icon(Icons.power, size: 30, color: Colors.white60,),
+                            child: const Icon(Icons.electric_bolt_sharp, size: 30, color: Colors.white60,),
                           ),
                           SizedBox(
                             width: screenWidth * .15,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
                             child: Text(
                               "$power",
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                            ),
+                            ),)
                           ),
                           SizedBox(
                               width: screenWidth * .1,
-                              child: const Text(
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                              child: Text(
                                 "W",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
-                              )
+                              ))
                           ),
                         ],
                       ),
@@ -284,19 +292,23 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         ),
                         SizedBox(
                           width: screenWidth * .15,
-                          child: Text(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
                             "$peerHeartRate",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
-                          ),
+                          ),)
                         ),
                         SizedBox(
                             width: screenWidth * .1,
-                            child: const Text(
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
                               "bpm",
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
-                            )
+                            ))
                         ),
                       ],
                     ),
@@ -308,23 +320,27 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       children: [
                         SizedBox(
                           width: screenWidth * .1,
-                          child: const Icon(Icons.power, size: 30, color: Colors.red,),
+                          child: const Icon(Icons.electric_bolt_sharp, size: 30, color: Colors.red,),
                         ),
                         SizedBox(
                           width: screenWidth * .15,
-                          child: Text(
-                            "$power",
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                            "$peerPower",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 25, color: Colors.red.shade200, fontWeight: FontWeight.w600),
-                          ),
+                          ),)
                         ),
                         SizedBox(
                             width: screenWidth * .1,
-                            child: const Text(
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
                               "W",
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.w500),
-                            )
+                            ))
                         ),
                       ],
                     ),
