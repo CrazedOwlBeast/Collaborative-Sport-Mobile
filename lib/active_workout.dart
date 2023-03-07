@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/longpress_button.dart';
 import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
@@ -33,6 +35,7 @@ class ActiveWorkout extends StatefulWidget {
 }
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
+    bool _showProgressIndicator = false;
     bool _changeDistance = false;
     var rng = Random();
     GoogleMapController? controller;
@@ -117,7 +120,28 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         });
       });
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
+      initPlatformState();
     }
+
+  Future<void> initPlatformState() async {
+    BackgroundFetch.configure(BackgroundFetchConfig(
+      minimumFetchInterval: 15, // minimum time interval between background fetches
+      stopOnTerminate: false, // whether to stop background fetches when app is terminated
+      enableHeadless: true, // whether to execute the fetch callback function in the background
+      startOnBoot: true, // whether to start background fetches when the device boots up
+    ), (String taskId) async {
+      // your fetch callback function here
+      // this function will be executed when a background fetch is triggered
+      // use the taskId parameter to identify the fetch task
+      // perform your background work here
+      // call the BackgroundFetch.finish(taskId) method when your work is complete
+      BackgroundFetch.finish(taskId);
+    }).then((int status) {
+      // handle success
+    }).catchError((e) {
+      // handle error
+    });
+  }
 
     @override
   void dispose() {
@@ -129,10 +153,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         subscribeStreamPower?.cancel();
       }
     super.dispose();
-
-      if(_positionStreamSubscription != null) {
-        _positionStreamSubscription.cancel();
-      }
+      _positionStreamSubscription.cancel();
+      BackgroundFetch.stop();
   }
 
     void addTime() {
@@ -197,22 +219,24 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     void _listenToLocationChanges() {
       Geolocator.getPositionStream().listen((position) {
-        setState(() {
-          _currentPosition = position;
-          _points.add(LatLng(position.latitude, position.longitude));
-          _polyLines.add(Polyline(
-            polylineId: PolylineId("workout_route"),
-            color: Colors.blue,
-            width: 5,
-            points: _points,
-          ));
-          distance = Geolocator.distanceBetween(
-            _initialPosition!.latitude,
-            _initialPosition!.longitude,
-            _currentPosition!.latitude,
-            _currentPosition!.longitude,
-          );
-        });
+        if (mounted) {
+          setState(() {
+            _currentPosition = position;
+            _points.add(LatLng(position.latitude, position.longitude));
+            _polyLines.add(Polyline(
+              polylineId: PolylineId("workout_route"),
+              color: Colors.blue,
+              width: 5,
+              points: _points,
+            ));
+            distance = Geolocator.distanceBetween(
+              _initialPosition!.latitude,
+              _initialPosition!.longitude,
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            );
+          });
+        }
       });
     }
 
@@ -629,27 +653,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ),
                 Visibility(
                     visible: stopWorkout,
-                    child: ElevatedButton(
-                        style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all(Colors.transparent),
-                            elevation: MaterialStateProperty.all(0.0),
-                            backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
-                        ),
-                        onLongPress: () {
-                          setState(() {
-                            widget.logger.toJson();
-                            Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
-                          });
-                        },
-                        onPressed: null,
-                        child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.orange,
-                            child:
-                            Icon(Icons.stop, size: 80,color: Colors.white)
-                        )
-                    )
+                    child: LongPressButton(logger: widget.logger),
                 )
               ],
             )

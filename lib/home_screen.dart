@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:background_fetch/background_fetch.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -91,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]);
       },
     );
-    Overlay.of(context).insert(overlayEntry);
+    Overlay.of(context)?.insert(overlayEntry);
   }
 
   void showConnectMonitorsDialog() {
@@ -127,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]);
       },
     );
-    Overlay.of(context).insert(overlayEntry);
+    Overlay.of(context)?.insert(overlayEntry);
   }
 
   void showConnectPartnersDialog() {
@@ -168,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-    Overlay.of(context).insert(overlayEntry);
+    Overlay.of(context)?.insert(overlayEntry);
   }
 
   void dismissMenu() {
