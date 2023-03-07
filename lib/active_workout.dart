@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
@@ -32,10 +34,8 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
-    //late final BleSensorDevice device;
-    //late final List<BleSensorDevice> deviceList;
     var rng = Random();
-    Completer<GoogleMapController> controller1 = Completer();
+    GoogleMapController? controller;
     Duration duration = Duration();
     Timer? timer;
     double speed = 0.0;
@@ -49,14 +49,22 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
 
-    static LatLng? _initialPosition;
-    static LatLng? _finalPosition;
+    Position? _initialPosition;
+    Position? _currentPosition;
+    List<LatLng> _points = [];
+    Set<Polyline> _polyLines = {};
+    late StreamSubscription<Position> _positionStreamSubscription;
+
     StreamSubscription<List<int>>? subscribeStreamHR;
     StreamSubscription<List<int>>? subscribeStreamPower;
     @override
     void initState(){
       super.initState();
-      _getUserLocation();
+      // _getUserLocation();
+      _getCurrentLocation();
+      _positionStreamSubscription = Geolocator.getPositionStream(
+          locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
+          .listen(_onPositionUpdate);
       startTimer();
       debugPrint('Exercise Type = ${widget.exerciseType}');
       if (widget.deviceList != null) {
@@ -121,6 +129,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         subscribeStreamPower?.cancel();
       }
     super.dispose();
+
+      if(_positionStreamSubscription != null) {
+        _positionStreamSubscription.cancel();
+      }
   }
 
     void addTime() {
@@ -142,17 +154,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       this.speed = (this.speed + speed)/2;
     }
 
-    void _getUserLocation() async {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      setState(() {
-        _initialPosition = LatLng(position.latitude, position.longitude);
-      });
-    }
 
     void _currentLocation() async {
-      final GoogleMapController controller = await controller1.future;
+      final GoogleMapController? cntrl = controller;
       Position position = await Geolocator.getCurrentPosition();
-      controller.animateCamera(CameraUpdate.newCameraPosition(
+      cntrl!.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng(position.latitude, position.longitude),
           zoom: 15.0,
@@ -160,18 +166,87 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ));
     }
 
-    _onMapCreated(GoogleMapController controller) {
+    void _getCurrentLocation() async {
+      final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       setState(() {
-        controller1.complete(controller);
+        _initialPosition = position;
+        _currentPosition = position;
+        // _points.add(LatLng(position.latitude, position.longitude));
+
+        if (controller != null) {
+          controller!.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: 15,
+            ),
+          ));
+
+          _polyLines.add(Polyline(
+            polylineId: const PolylineId('userRoute'),
+            visible: true,
+            points: [
+              LatLng(_initialPosition!.latitude, _initialPosition!.longitude)
+            ],
+            color: Colors.blue,
+            width: 5,));
+        }
+      });
+      _listenToLocationChanges();
+    }
+
+    void _listenToLocationChanges() {
+      Geolocator.getPositionStream().listen((position) {
+        setState(() {
+          _currentPosition = position;
+          _polyLines.add(Polyline(
+            polylineId: PolylineId("workout_route"),
+            color: Colors.blue,
+            width: 5,
+            points: [
+              LatLng(_initialPosition!.latitude, _initialPosition!.longitude),
+              LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            ],
+          ));
+          distance = Geolocator.distanceBetween(
+            _initialPosition!.latitude,
+            _initialPosition!.longitude,
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+          );
+        });
       });
     }
-    // TODO: Update distance and display it
-    // void _getDistance() {
-    //   distance = Geolocator.distanceBetween(
-    //       _initialPosition!.latitude,
-    //       _initialPosition!.longitude,
-    //       _finalPosition!.latitude,
-    //       _finalPosition!.longitude);
+
+    void _onPositionUpdate(Position newPosition) {
+      setState(() {
+        _currentPosition = newPosition;
+        if(_initialPosition != null) {
+          final distanceInMeters = Geolocator.distanceBetween(
+              _initialPosition!.latitude,
+              _initialPosition!.longitude,
+              _currentPosition!.latitude,
+              _currentPosition!.longitude);
+          distance = distanceInMeters;
+          _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+        }
+      });
+    }
+
+    _onMapCreated(GoogleMapController controller) {
+      controller = controller;
+    }
+
+    // void _getDistance(Position newPosition) {
+    //   final distanceInMeters = Geolocator.distanceBetween(
+    //       _initialPosition.latitude,
+    //       _initialPosition.longitude,
+    //       newPosition.latitude,
+    //       newPosition.longitude);
+    //   setState(() {
+    //     distance = distanceInMeters;
+    //     _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+    //   });
     // }
 
     @override
@@ -190,15 +265,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
           color: Colors.black,
           child:
               SizedBox(
-                width: screenWidth * .4,
+                width: screenWidth * .5,
                 child: Column(
                   children: [
                     SizedBox(
-                      height: 35,
+                      height: 45,
                       child:
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -265,15 +340,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       if (BluetoothManager.instance.connectedDevices.isNotEmpty) {
         statsRow.children.add(Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
             color: Colors.black,
             child:
             SizedBox(
-              width: screenWidth * .4,
+              width: screenWidth * .5,
               child: Column(
                 children: [
                   SizedBox(
-                    height: 35,
+                    height: 45,
                     child:
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -343,15 +418,19 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             SizedBox(
             height: screenHeight * 0.52,
             width: screenWidth,
-            child: _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
+            child:
+            _initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
               Stack(
                 children: [
                   GoogleMap(
-                    initialCameraPosition: CameraPosition(target: _initialPosition!, zoom: 15),
+                    initialCameraPosition: CameraPosition(target: LatLng(_initialPosition!.latitude, _initialPosition!.longitude), zoom: 15),
                     mapType: MapType.normal,
                     onMapCreated: _onMapCreated,
                     myLocationEnabled: true,
                     myLocationButtonEnabled: false,
+                    gestureRecognizers: Set()
+                      ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
+                    polylines: _polyLines
                   ),
                   Padding(
                       padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
@@ -391,9 +470,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 child: DecoratedBox(
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(75.0)),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             ElevatedButton(
                               onPressed: () {
@@ -438,7 +517,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: _changeDistance ?
                                 RichText(
                                   text: TextSpan(
-                                    text: ' ${(distance / 1609).toStringAsFixed(2)}',
+                                    text: ' ${(distance > 15 ? (distance / 1609).toStringAsFixed(2) : 0.0)}',
                                     style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                     children: const [
                                       TextSpan(
@@ -447,7 +526,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       )]))  :
                                 RichText(
                                   text: TextSpan(
-                                      text: ' ${(distance / 1000).toStringAsFixed(2)}',
+                                      text: ' ${(distance > 15 ? (distance / 1000).toStringAsFixed(2) : 0.0)}',
                                       style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
@@ -473,7 +552,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                 child: _changeDistance ?
                                 RichText(
                                     text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1609)).toStringAsFixed(2)}',
+                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1609) / 60).toStringAsFixed(2) : 0)}',
                                         style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
@@ -482,7 +561,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                           )]))  :
                                 RichText(
                                     text: TextSpan(
-                                        text: '  ${(duration.inMinutes / (distance / 1000)).toStringAsFixed(2)}',
+                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1000) / 60).toStringAsFixed(2) : 0)}',
                                         style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
@@ -557,10 +636,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         onLongPress: () {
                           setState(() {
                             widget.logger.toJson();
-
-
-
-                            // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(
                                 MaterialPageRoute(builder: (context) => const CompletedWorkout()));
                           });
