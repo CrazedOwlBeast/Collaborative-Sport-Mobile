@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
+import 'dart:io';
 
 enum WorkoutType { cycling, running, walking }
 
@@ -16,21 +17,80 @@ class AppLogger {
     loggerEvents.events.add(LoggerEvent(eventType: 0));  // App startup event.
   }
 
-  // Prepare JSON for export.
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+  // Prepare serializable object for export.
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
 
-    json['name'] = userDevice?.name;
-    json['device_id'] = userDevice?.deviceId;
-    json['serial_number'] = userDevice?.serialNumber;
-    json['workout'] = workout.toJson();
-    json['events'] = loggerEvents.toJson();
+    map['name'] = userDevice?.name;
+    map['device_id'] = userDevice?.deviceId;
+    map['serial_number'] = userDevice?.serialNumber;
+    map['workout'] = workout.toMap();
+    map['events'] = loggerEvents.toMap();
 
-    //json['events'] = eventsJson;
-    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    return map;
+  }
 
-    debugPrint(encoder.convert(json));
-    return json;
+  // Function to send JSON data to analytics group.
+  void insertToDatabase() async {
+
+    HttpClient httpClient = HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse('https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
+    request.headers.set('apiKey', 'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
+    request.headers.contentType = ContentType('application', 'json');
+
+    Map<String, dynamic> body = {
+      'dataSource': 'FitnessLog',
+      'database': 'FitnessLog',
+      'collection': 'Test',
+      'document': toMap()
+    };
+
+    request.write(jsonEncode(body));
+
+    debugPrint(jsonEncode(body));
+
+    HttpClientResponse response = await request.close();
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+
+    if (response.statusCode == 200) {
+      debugPrint(reply);
+      // debugPrint(await response.stream.bytesToString());
+    }
+    else {
+      debugPrint(response.reasonPhrase);
+    }
+  }
+
+  void testInsertToDatabase() async {
+    HttpClient httpClient = HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse("https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/find"));
+
+    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+
+    request.headers.set("apiKey", "e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg");
+    // request.headers.set("Content-Type", "application/json");
+
+    request.write(jsonEncode(
+        {
+          "dataSource": "FitnessLog",
+          "database": "FitnessLog",
+          "collection": "Test",
+        }
+    ));
+
+    HttpClientResponse response = await request.close();
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+
+    if (response.statusCode == 200) {
+      debugPrint(reply);
+      //debugPrint(await response.stream.bytesToString());
+    }
+    else {
+      debugPrint(response.statusCode.toString());
+      debugPrint(response.reasonPhrase);
+    }
   }
 }
 
@@ -50,7 +110,6 @@ class LoggerWorkout {
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
   void logHeartRate(int heartRate) {
     loggerHeartRate.data.add(LoggerWorkoutData(value: heartRate));
-    // debugPrint("HeartRate logged: $heartRate");
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerDistance.data.
@@ -58,29 +117,29 @@ class LoggerWorkout {
     loggerDistance.data.add(LoggerWorkoutData(value: distance));
   }
 
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
 
-    // json['workout_type'] = workoutType?.name;
-    // TODO: partner info
-    json['start_timestamp'] = startTimestamp;
-    json['heart_rate'] = loggerHeartRate.toJson();
-    json['distance'] = loggerDistance.toJson();
+    // map['workout_type'] = workoutType?.name;
+    // TODO: partner info, workout type
+    map['start_timestamp'] = startTimestamp;
+    map['heart_rate'] = loggerHeartRate.toMap();
+    map['distance'] = loggerDistance.toMap();
 
-    return json;
+    return map;
   }
 }
 
 class LoggerEvents {
   List<LoggerEvent> events = [];
 
-  List<Map<String, dynamic>> toJson() {
-    List<Map<String, dynamic>> json = [];
+  List<Map<String, dynamic>> toMap() {
+    List<Map<String, dynamic>> map = [];
     for (LoggerEvent event in events) {
-      json.add(event.toJson());
+      map.add(event.toMap());
     }
 
-    return json;
+    return map;
   }
 
 }
@@ -95,7 +154,7 @@ class LoggerEvent {
   String bleDeviceName = "";
   String partnerName = "";
   String partnerDeviceId = "";
-  Map<String, dynamic> json = {};
+  Map<String, dynamic> map = {};
 
 
   LoggerEvent({required this.eventType}) {
@@ -105,8 +164,8 @@ class LoggerEvent {
         .millisecondsSinceEpoch
         .toString(); // TODO: Is this the correct timestamp format?
 
-    json['event_type'] = eventType;
-    json['time'] = timestamp;
+    map['event_type'] = eventType;
+    map['time'] = timestamp;
   }
 
   void processEvent() {
@@ -124,7 +183,7 @@ class LoggerEvent {
       // Button is pressed.
       // TODO: Call on every button press :(
       case 2: {
-        json['button_name'] = buttonName;
+        map['button_name'] = buttonName;
       } break;
 
       // Page is switched.
@@ -139,12 +198,12 @@ class LoggerEvent {
 
       // Workout is started.
       case 5: {
-        // TODO: Just log the timestamp and type of workout.
+        map['workout_type'] = workoutType;
       } break;
 
       // Workout is ended.
       case 6: {
-        // TODO: Just log the timestamp and type of workout.
+        map['workout_type'] = workoutType;
       } break;
 
       // Workout is paused. Only records timestamp.
@@ -160,14 +219,14 @@ class LoggerEvent {
       // TODO: Make sure partner_device_id makes sense.
       // Partner is connected.
       case 9: {
-        json['partner_name'] = partnerName;
-        json['partner_device_id'] = partnerDeviceId;
+        map['partner_name'] = partnerName;
+        map['partner_device_id'] = partnerDeviceId;
       } break;
 
       // Partner is disconnected.
       case 10: {
-        json['partner_name'] = partnerName;
-        json['partner_device_id'] = partnerDeviceId;
+        map['partner_name'] = partnerName;
+        map['partner_device_id'] = partnerDeviceId;
       } break;
 
       // Bluetooth scan started. Only records timestamp.
@@ -177,19 +236,19 @@ class LoggerEvent {
 
       // BLE device connected.
       case 12: {
-        json['device_name'] = bleDeviceName;
+        map['device_name'] = bleDeviceName;
       } break;
 
       // BLE device disconnected.
       // TODO: Specs from analytics group should call for device type in separate field.?
       case 13: {
-        json['device_name'] = bleDeviceName;
+        map['device_name'] = bleDeviceName;
       } break;
     }
   }
 
-  Map<String, dynamic> toJson() {
-    return json;
+  Map<String, dynamic> toMap() {
+    return map;
   }
 }
 
@@ -206,19 +265,19 @@ class LoggerHeartRate {
   String maxHeartRate = "";
   List<LoggerWorkoutData> data = [];
 
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
 
-    json['units'] = units;
-    json['max_heart_rate'] = maxHeartRate;
+    map['units'] = units;
+    map['max_heart_rate'] = maxHeartRate;
 
-    List<Map<String, dynamic>> dataJson = [];
+    List<Map<String, dynamic>> dataMap = [];
     for (LoggerWorkoutData event in data) {
-      dataJson.add(event.toJson());
+      dataMap.add(event.toMap());
     }
-    json['data'] = dataJson;
+    map['data'] = dataMap;
 
-    return json;
+    return map;
   }
 }
 
@@ -227,18 +286,18 @@ class LoggerDistance {
   String units = "";
   List<LoggerWorkoutData> data = [];
 
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
 
-    json['units'] = units;
+    map['units'] = units;
 
-    List<Map<String, dynamic>> dataJson = [];
+    List<Map<String, dynamic>> dataMap = [];
     for (LoggerWorkoutData event in data) {
-      dataJson.add(event.toJson());
+      dataMap.add(event.toMap());
     }
-    json['data'] = dataJson;
+    map['data'] = dataMap;
 
-    return json;
+    return map;
   }
 }
 
@@ -246,17 +305,17 @@ class LoggerDistance {
 class LoggerWorkoutData {
   final int value;
   String? timestamp;
-
+  
   LoggerWorkoutData({required this.value}) {
     timestamp = DateTime.now().millisecondsSinceEpoch.toString();  // TODO: Is this the correct timestamp format?
   }
 
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
 
-    json['value'] = value;
-    json['timestamp'] = timestamp;
+    map['value'] = value;
+    map['timestamp'] = timestamp;
 
-    return json;
+    return map;
   }
 }

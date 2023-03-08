@@ -434,8 +434,93 @@ class _HomeScreenState extends State<HomeScreen> {
         ]),
       ),
       PastWorkouts(),
-      Settings()
-    ];
+      Settings(),
+                    Padding( /// Connect monitors
+                      padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, screenHeight * 0.63, 30, 0),
+                      child: ElevatedButton(
+                          style: ButtonStyle(
+                            shape: MaterialStateProperty.all(const CircleBorder()),
+                            padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
+                            backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
+                          ),
+                          onPressed: () async {
+                            showConnectMonitorsDialog();
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => const MonitorConnect()),
+                            // );
+                          },
+                          child: const Icon(Icons.bluetooth_connected, size: 30)
+                      ),
+                    ),
+                    Padding( /// Connect partners
+                      padding: EdgeInsets.fromLTRB(screenWidth * 0.78, screenHeight * 0.63, 30, 0),
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          shape: MaterialStateProperty.all(const CircleBorder()),
+                          padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
+                          backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
+                        ),
+                        onPressed: () async {
+                          showConnectPartnersDialog();
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (context) => const PartnerConnect()),
+                          // );
+                        },
+                        child: const Icon(Icons.people_alt_sharp)
+                      ),
+                    ),
+
+
+            Container(
+                padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                color: Colors.black,
+                alignment: Alignment.topCenter,
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.17, // go button takes 18% of screen
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                        loggedEvent.workoutType = exerciseType;
+                        loggedEvent.processEvent();
+                        logger.loggerEvents.events.add(loggedEvent);
+
+                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices, exerciseType));
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.green) ,
+                          minimumSize: MaterialStateProperty.all<Size>(Size(350, 100)),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(45.0),
+                              )
+                          )
+                      ),
+                      child: Wrap(
+                        alignment: WrapAlignment.spaceAround,
+                        children: const [
+                          Text(
+                            'GO!',
+                            style: TextStyle(
+                                fontSize: 75.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white
+                            ),
+                          ),
+                          Icon(Icons.play_arrow_rounded, size: 90,),
+                        ],
+                      ),
+                    )
+                  ], // Children
+                )
+            ),
+          PastWorkouts(),
+          Settings()
+  ];
 
     return Scaffold(
       body: IndexedStack(children: _children, index: _currentIndex),

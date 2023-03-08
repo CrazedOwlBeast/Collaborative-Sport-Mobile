@@ -637,7 +637,17 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         ),
                         onLongPress: () {
                           setState(() {
-                            widget.logger.toJson();
+                            LoggerEvent loggedEvent = LoggerEvent(eventType: 6);
+                            loggedEvent.workoutType = widget.exerciseType;
+                            loggedEvent.processEvent();
+                            widget.logger.loggerEvents.events.add(loggedEvent);
+
+                            /// Send logger data to analytics group.
+                            widget.logger.insertToDatabase();
+
+                            // widget.logger.testInsertToDatabase();
+
+                            // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(
                                 MaterialPageRoute(builder: (context) => const CompletedWorkout()));
                           });
