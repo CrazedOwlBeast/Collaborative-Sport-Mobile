@@ -13,85 +13,150 @@ class Settings extends StatefulWidget {
   State<Settings> createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
-    
+class _SettingsState extends State<Settings>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
-    @override
-    void initState(){
-      super.initState();
-    }
+  final nameController = TextEditingController();
+  final ageController = TextEditingController();
+  final hrController = TextEditingController();
 
-    @override
-    Widget build(BuildContext context) {
-
-      var screenWidth = MediaQuery.of(context).size.width;
-      var screenHeight = MediaQuery.of(context).size.height;
-
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(0, 75, 0, 0),
-              alignment: Alignment.bottomCenter,
-              color: Colors.black,
-              child: Text(
-                "Settings",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 45
-                )
-              )
-              ),
-              settingsButtonMaker(context, "Edit user info"),
-              settingsButtonMaker(context, "How to use"),
-              settingsButtonMaker(context, "Legal"),
-
-        ]
-      )
-    );
+  @override
+  void initState() {
+    super.initState();
   }
-}
 
-Container settingsButtonMaker(BuildContext context, String text)
-{
-  return           
-    Container(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                color: Colors.black,
-                alignment: Alignment.center,
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.13, // go button takes 18% of screen
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+  String getName() {
+    return nameController.text;
+  }
+
+  String getAge() {
+    return ageController.text;
+  }
+
+  String getMaxHR() {
+    return hrController.text;
+  }
+
+  String calculateMaxHRString(String age) {
+    return (208 - (0.7 * int.parse(age))).toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
+    return PageView(children: [
+      Scaffold(
+          backgroundColor: Colors.black,
+          body: Column(children: [
+            Padding(padding: EdgeInsets.all(40)),
+            Text("Edit Profile",
+                style: TextStyle(fontSize: 35, color: Colors.white)),
+            Padding(padding: EdgeInsets.all(5)),
+            Container(
+                height: screenHeight / 5,
+                width: screenWidth / 3,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(width: 2, color: Colors.white)),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                      },
-                      style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Colors.grey[850]) ,
-                          minimumSize: MaterialStateProperty.all<Size>(Size(300, 70)),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(45.0),
-                              )
-                          )
-                      ),
-                      child: Wrap(
-                        alignment: WrapAlignment.spaceAround,
-                        children:  [
-                          Text(
-                            text,
-                            style: TextStyle(
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  ], // Children
-                ),
-            );
+                    Icon(Icons.person, color: Colors.white, size: 130),
+                    Positioned(
+                        top: screenHeight / 7,
+                        left: screenWidth / 4,
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(width: 2, color: Colors.white)),
+                            child:
+                                Icon(Icons.add, color: Colors.green, size: 25)))
+                  ],
+                )),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  child: Text(
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    "Name",
+                    textAlign: TextAlign.left,
+                  ),
+                )),
+            Padding(padding: EdgeInsets.all(5)),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                    width: screenWidth / 1.5,
+                    child: TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.grey,
+                          hintText: 'Enter name',
+                        )))),
+            Padding(padding: EdgeInsets.all(10)),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  child: Text(
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    "Age",
+                    textAlign: TextAlign.left,
+                  ),
+                )),
+            Padding(padding: EdgeInsets.all(5)),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                    width: screenWidth / 4,
+                    child: TextField(
+                        onSubmitted: (value) {
+                          hrController.text = calculateMaxHRString(value);
+                        },
+                        controller: ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.grey,
+                          hintText: 'Enter age',
+                        )))),
+            Padding(padding: EdgeInsets.all(10)),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  child: Text(
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    "Max Heart Rate",
+                    textAlign: TextAlign.left,
+                  ),
+                )),
+            Padding(padding: EdgeInsets.all(5)),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                    width: screenWidth / 3,
+                    child: TextField(
+                        onSubmitted: (value) {
+                          debugPrint(value);
+                        },
+                        controller: hrController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.grey,
+                          hintText: 'Enter max HR',
+                        )))),
+            Padding(padding: EdgeInsets.all(10))
+          ]))
+    ]);
+  }
 }
