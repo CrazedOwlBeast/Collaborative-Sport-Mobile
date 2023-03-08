@@ -644,7 +644,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
                             /// Send logger data to analytics group.
                             widget.logger.insertToDatabase();
-                            widget.logger.testInsertToDatabase();
+
+                            // widget.logger.testInsertToDatabase();
 
                             // TODO: grab all information before transitioning to new screen
                             Navigator.of(context).push(

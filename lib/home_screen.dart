@@ -434,9 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]),
       ),
       PastWorkouts(),
-      Settings()
-    ];
-                    ),
+      Settings(),
                     Padding( /// Connect monitors
                       padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, screenHeight * 0.63, 30, 0),
                       child: ElevatedButton(
@@ -473,10 +471,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: const Icon(Icons.people_alt_sharp)
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+
+
             Container(
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                 color: Colors.black,
@@ -521,9 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   ], // Children
                 )
-            )
-
-          ]),),
+            ),
           PastWorkouts(),
           Settings()
   ];

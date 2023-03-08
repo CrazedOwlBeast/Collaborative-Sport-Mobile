@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
 
 enum WorkoutType { cycling, running, walking }
 
@@ -33,30 +33,29 @@ class AppLogger {
   // Function to send JSON data to analytics group.
   void insertToDatabase() async {
 
-    // Output with indents for debugging.
-    debugPrint("Readable JSON:\n${const JsonEncoder.withIndent('  ').convert(toMap())}");
+    HttpClient httpClient = HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse('https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
+    request.headers.set('apiKey', 'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
+    request.headers.contentType = ContentType('application', 'json');
 
-    var headers = {
-      'Content-Type': 'application/map',
-      'apiKey': 'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg'
+    Map<String, dynamic> body = {
+      'dataSource': 'FitnessLog',
+      'database': 'FitnessLog',
+      'collection': 'Test',
+      'document': toMap()
     };
 
-    var request = http.Request('POST', Uri.parse('https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
-    request.headers.addAll(headers);
+    request.write(jsonEncode(body));
 
-    request.body = json.encode({
-      "dataSource": "FitnessLog",
-      "database": "FitnessLog",
-      "collection": "Test",
-      "document": toMap(),
-    });
+    debugPrint(jsonEncode(body));
 
-    debugPrint("request.body:\n${request.body}");
-
-    http.StreamedResponse response = await request.send();
+    HttpClientResponse response = await request.close();
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
 
     if (response.statusCode == 200) {
-      debugPrint(await response.stream.bytesToString());
+      debugPrint(reply);
+      // debugPrint(await response.stream.bytesToString());
     }
     else {
       debugPrint(response.reasonPhrase);
@@ -64,27 +63,32 @@ class AppLogger {
   }
 
   void testInsertToDatabase() async {
-    var headers = {
-      'Content-Type': 'application/map',
-      'apiKey': 'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg'
-    };
+    HttpClient httpClient = HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse("https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/find"));
 
-    var request = http.Request('POST', Uri.parse('https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/find'));
+    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
 
-    request.headers.addAll(headers);
+    request.headers.set("apiKey", "e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg");
+    // request.headers.set("Content-Type", "application/json");
 
-    request.body = json.encode({
-      "dataSource": "FitnessLog",
-      "database": "FitnessLog",
-      "collection": "Test",  /// Test database.
-    });
+    request.write(jsonEncode(
+        {
+          "dataSource": "FitnessLog",
+          "database": "FitnessLog",
+          "collection": "Test",
+        }
+    ));
 
-    http.StreamedResponse response = await request.send();
+    HttpClientResponse response = await request.close();
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
 
     if (response.statusCode == 200) {
-      debugPrint(await response.stream.bytesToString());
+      debugPrint(reply);
+      //debugPrint(await response.stream.bytesToString());
     }
     else {
+      debugPrint(response.statusCode.toString());
       debugPrint(response.reasonPhrase);
     }
   }
@@ -106,7 +110,6 @@ class LoggerWorkout {
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
   void logHeartRate(int heartRate) {
     loggerHeartRate.data.add(LoggerWorkoutData(value: heartRate));
-    // debugPrint("HeartRate logged: $heartRate");
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerDistance.data.
