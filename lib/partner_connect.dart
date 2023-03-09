@@ -181,7 +181,6 @@ class _PartnerConnectState extends State<PartnerConnect> {
       devicesList.forEach((element) {
         print(
             " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");
-
         if (element.state == SessionState.connected && !BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
           BluetoothManager.instance.connectedDevices[element.deviceId] = element;
 

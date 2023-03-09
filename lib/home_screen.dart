@@ -47,8 +47,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  String name = "";
-  String maxHeartRate = "";
+  // TODO: Restore settings from file if it exists.
+  SettingsStorage settings = SettingsStorage();
 
   late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
   late double dialogHeight = MediaQuery.of(context).size.height * .60;
@@ -194,6 +194,14 @@ class _HomeScreenState extends State<HomeScreen> {
     logger.userDevice = device;
   }
 
+  @override
+  void dispose() {
+    LoggerEvent loggedEvent = LoggerEvent(eventType: 1);
+    loggedEvent.currentPage = "home_page";
+    logger.loggerEvents.events.add(loggedEvent);
+    super.dispose();
+  }
+
   void _getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -277,6 +285,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
+
+    device.name = settings.name;
+    logger.userDevice = device;
 
     final List<Widget> _children = [
       CompositedTransformTarget(
@@ -400,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
                       logger.loggerEvents.events.add(loggedEvent);
                       Navigator.of(context).push(_createRoute(
-                          flutterReactiveBle, connectedDevices, exerciseType));
+                          flutterReactiveBle, connectedDevices, exerciseType, settings));
                     },
                     style: ButtonStyle(
                         backgroundColor:
@@ -434,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]),
       ),
       PastWorkouts(),
-      Settings(),
+      Settings(settings: settings,),
                     Padding( /// Connect monitors
                       padding: EdgeInsets.fromLTRB((screenWidth - 65 )/ 2, screenHeight * 0.63, 30, 0),
                       child: ElevatedButton(
@@ -444,6 +455,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                           ),
                           onPressed: () async {
+                            LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                            loggedEvent.buttonName = "connect_monitors_button";
+                            loggedEvent.processEvent();
+                            logger.loggerEvents.events.add(loggedEvent);
                             showConnectMonitorsDialog();
                             // Navigator.push(
                             //   context,
@@ -462,6 +477,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           backgroundColor: MaterialStateProperty.all(Colors.orange), // <-- Button color
                         ),
                         onPressed: () async {
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          loggedEvent.buttonName = "connect_partners_button";
+                          loggedEvent.processEvent();
+                          logger.loggerEvents.events.add(loggedEvent);
+
                           showConnectPartnersDialog();
                           // Navigator.push(
                           //   context,
@@ -489,7 +509,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         loggedEvent.processEvent();
                         logger.loggerEvents.events.add(loggedEvent);
 
-                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices, exerciseType));
+                        loggedEvent = LoggerEvent(eventType: 3);
+                        loggedEvent.prevPage = "home_page";
+                        loggedEvent.nextPage = "active_workout_page";
+                        loggedEvent.processEvent();
+                        logger.loggerEvents.events.add(loggedEvent);
+
+                        Navigator.of(context).push(_createRoute(flutterReactiveBle, connectedDevices, exerciseType, settings));
                       },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(Colors.green) ,
@@ -519,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
             ),
           PastWorkouts(),
-          Settings()
+          Settings(settings: settings,)
   ];
 
     return Scaffold(
@@ -565,13 +591,15 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 Route _createRoute(FlutterReactiveBle ble,
-    List<BleSensorDevice>? connectedDevices, String type) {
+    List<BleSensorDevice>? connectedDevices, String type, SettingsStorage settingsStorage) {
+
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(
         flutterReactiveBle: ble,
         deviceList: connectedDevices,
         logger: _HomeScreenState.logger,
-        exerciseType: type),
+        exerciseType: type,
+        settings: settingsStorage),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
