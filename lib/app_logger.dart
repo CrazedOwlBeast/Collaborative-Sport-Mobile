@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hello_world/exercise_type.dart';
+
 enum WorkoutType { cycling, running, walking }
 
 // TODO: Transmit logged data.
@@ -14,7 +16,11 @@ class AppLogger {
 
 
   AppLogger() {
-    loggerEvents.events.add(LoggerEvent(eventType: 0));  // App startup event.
+    // Send app launch event when constructor is called (always from home screen).
+    LoggerEvent loggedEvent = LoggerEvent(eventType: 0);
+    loggedEvent.currentPage = "home_page";
+    loggedEvent.processEvent();
+    loggerEvents.events.add(loggedEvent);
   }
 
   // Prepare serializable object for export.
@@ -96,11 +102,14 @@ class AppLogger {
 
 // Class to gather data during workout.
 class LoggerWorkout {
-  WorkoutType? workoutType;
+  String workoutType = "";
   LoggerDevice? partnerDevice;
   String? startTimestamp;
   LoggerHeartRate loggerHeartRate = LoggerHeartRate();
   LoggerDistance loggerDistance = LoggerDistance();
+
+  String partnerName = "";
+  String partnerDeviceId = "";
 
   // Constructor.
   LoggerWorkout() {
@@ -122,6 +131,11 @@ class LoggerWorkout {
 
     // map['workout_type'] = workoutType?.name;
     // TODO: partner info, workout type
+    map['workout_type'] = workoutType;
+    map['partner'] = {
+      'name': partnerName,
+      'device_id': partnerDeviceId,
+    };
     map['start_timestamp'] = startTimestamp;
     map['heart_rate'] = loggerHeartRate.toMap();
     map['distance'] = loggerDistance.toMap();
@@ -148,12 +162,15 @@ class LoggerEvents {
 class LoggerEvent {
   final int eventType;
   String timestamp = "";
-
+  String prevPage = "";
+  String nextPage = "";
+  String currentPage = "";
   String buttonName = "";
   String workoutType = "";
   String bleDeviceName = "";
   String partnerName = "";
   String partnerDeviceId = "";
+
   Map<String, dynamic> map = {};
 
 
@@ -172,12 +189,12 @@ class LoggerEvent {
     switch (eventType) {
       // App is launched.
       case 0: {
-        // TODO: Log starting page/closing page name (if applicable)
+        map['current_page'] = currentPage;
       } break;
 
       // App is closed.
       case 1: {
-        // TODO: Log starting page/closing page name (if applicable)
+        map['current_page'] = currentPage;
       } break;
 
       // Button is pressed.
@@ -187,8 +204,10 @@ class LoggerEvent {
       } break;
 
       // Page is switched.
+    // TODO: Call on every page switch :(
       case 3: {
-        // TODO: Log the page before the switch (if applicable) and the page that was switched to
+        map['page_before_switch'] = prevPage;
+        map['page_after_switch'] = nextPage;
       } break;
 
       // Setting is changed.

@@ -14,6 +14,7 @@ import 'package:hello_world/bluetooth_manager.dart';
 import 'package:hello_world/completed_workout.dart';
 import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/past_workouts.dart';
+import 'package:hello_world/settings.dart';
 
 import 'home_screen.dart';
 
@@ -22,11 +23,13 @@ class ActiveWorkout extends StatefulWidget {
   final List<BleSensorDevice>? deviceList;
   final AppLogger logger;
   final String exerciseType;
+  final SettingsStorage settings;
   const ActiveWorkout({super.key,
     required this.flutterReactiveBle,
     required this.deviceList,
     required this.logger,
     required this.exerciseType,
+    required this.settings
   });
 
   @override
@@ -35,6 +38,7 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _changeDistance = false;
+    int lastLoggedDistance = 0;
     var rng = Random();
     GoogleMapController? controller;
     Duration duration = Duration();
@@ -49,6 +53,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool pauseWorkout = true;
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
+    String peerName = "";
+    String peerDeviceId = "";
 
     Position? _initialPosition;
     Position? _currentPosition;
@@ -61,6 +67,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     @override
     void initState(){
       super.initState();
+
+      widget.logger.workout.workoutType = widget.exerciseType;
+
       // _getUserLocation();
       _getCurrentLocation();
       _positionStreamSubscription = Geolocator.getPositionStream(
@@ -112,6 +121,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               break;
             case 1:
               peerPower = value;
+              break;
+            case 2:
+              peerName = value.toString();
+              widget.logger.workout.partnerName = peerName;
+              break;
+            case 3:
+              peerDeviceId = value.toString();
+              widget.logger.workout.partnerDeviceId = peerDeviceId;
               break;
             default:
           }
@@ -228,6 +245,13 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               _currentPosition!.longitude);
           distance += distanceInMeters;
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+
+          // Log the distance every meter.
+          // TODO: Determine logging interval for distance.
+          if (distance.floor() > lastLoggedDistance + 1) {
+            widget.logger.workout.logDistance(distance.floor());
+            lastLoggedDistance = distance.floor();
+          }
         }
       });
     }
@@ -238,6 +262,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     @override
     Widget build(BuildContext context) {
+      // TODO: Get partner info from bluetooth connection
+      //BluetoothManager.instance.broadcastString("2: ${widget.settings.name}");
+      //BluetoothManager.instance.broadcastString("3: ${widget.logger.userDevice?.deviceId.toString()}");
+
       int heartRatePercent = ((heartrate! / targetHeartRate!) * 100).round();
       String twoDigits(int n) => n.toString().padLeft(2, '0');
       String? hours,minutes,seconds;
