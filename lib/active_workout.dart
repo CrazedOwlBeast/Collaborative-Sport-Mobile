@@ -5,6 +5,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -186,8 +187,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         subscribeStreamPower?.cancel();
       }
     super.dispose();
-      _positionStreamSubscription.cancel();
-      BackgroundFetch.stop();
+      if(_positionStreamSubscription != null) {
+        _positionStreamSubscription.cancel();
+        BackgroundFetch.stop();
+      }
   }
 
     void addTime() {
@@ -639,9 +642,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       ),
                     ]
                   ),
+                ),
               ),
-            )
-          ),
+            ),
             const SizedBox(height: 16),
             statsRow,
             const SizedBox(height: 16),
@@ -651,6 +654,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ElevatedButton(
                     style: ButtonStyle(
                         overlayColor: MaterialStateProperty.all(Colors.transparent),
+                        padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
                         elevation: MaterialStateProperty.all(0.0),
                         backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
                     ),
@@ -684,7 +688,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     },
                     child:
                     CircleAvatar(
-                      radius: 60,
+                      radius: 50,
                       backgroundColor: Colors.orange,
                       child: pauseWorkout ?
                       Icon(Icons.pause, size: 80,color: Colors.white) :

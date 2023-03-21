@@ -8,8 +8,9 @@ import 'completed_workout.dart';
 
 class LongPressButton extends StatefulWidget {
   final AppLogger logger;
+  final String exerciseType;
 
-  const LongPressButton({super.key, required this.logger});
+  const LongPressButton({super.key, required this.logger, required this.exerciseType});
 
   @override
   _LongPressButtonState createState() => _LongPressButtonState();
@@ -30,12 +31,17 @@ class _LongPressButtonState extends State<LongPressButton> {
           _timer?.cancel();
           _timer = null;
           _progress = 0;
-          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 6));
-          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
-          loggedEvent.buttonName = "end_workout";
+          LoggerEvent loggedEvent = LoggerEvent(eventType: 6);
+          loggedEvent.workoutType = widget.exerciseType;
           loggedEvent.processEvent();
           widget.logger.loggerEvents.events.add(loggedEvent);
-          widget.logger.toJson();
+
+          /// Send logger data to analytics group.
+          widget.logger.insertToDatabase();
+
+          // widget.logger.testInsertToDatabase();
+
+          // TODO: grab all information before transitioning to new screen
           Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const CompletedWorkout()));
         }
