@@ -39,6 +39,7 @@ class ActiveWorkout extends StatefulWidget {
 }
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
+    bool _showProgressIndicator = false;
     bool _changeDistance = false;
     int lastLoggedDistance = 0;
     var rng = Random();
@@ -113,12 +114,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           }
         }
       }
-      Future.delayed(Duration(seconds: 3), () {
-        setState(() {
-          BluetoothManager.instance.connectedDevices["add"] = Device("hello", "testing", 1);
-        });
-      });
-
       peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {
         setState(() {
           int type = int.parse(event.substring(0, 1));
