@@ -704,38 +704,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ),
                 Visibility(
                     visible: stopWorkout,
-                    // child: LongPressButton(logger: widget.logger),
-                    child: ElevatedButton(
-                        style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all(Colors.transparent),
-                            elevation: MaterialStateProperty.all(0.0),
-                            backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
-                        ),
-                        onLongPress: () {
-                          setState(() {
-                            LoggerEvent loggedEvent = LoggerEvent(eventType: 6);
-                            loggedEvent.workoutType = widget.exerciseType;
-                            loggedEvent.processEvent();
-                            widget.logger.loggerEvents.events.add(loggedEvent);
-
-                            /// Send logger data to analytics group.
-                            widget.logger.insertToDatabase();
-
-                            // widget.logger.testInsertToDatabase();
-
-                            // TODO: grab all information before transitioning to new screen
-                            Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
-                          });
-                        },
-                        onPressed: null,
-                        child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.orange,
-                            child:
-                            Icon(Icons.stop, size: 80,color: Colors.white)
-                        )
-                    )
+                    child: LongPressButton(logger: widget.logger, exerciseType: widget.exerciseType)
                 )
               ],
             )
