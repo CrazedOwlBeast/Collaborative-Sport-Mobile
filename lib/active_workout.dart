@@ -13,6 +13,7 @@ import 'package:hello_world/bluetooth_manager.dart';
 import 'package:hello_world/completed_workout.dart';
 import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/past_workouts.dart';
+import 'package:hello_world/settings.dart';
 
 import 'home_screen.dart';
 
@@ -48,6 +49,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool pauseWorkout = true;
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
+
+    final Settings settings = new Settings();
+
 
     Position? _initialPosition;
     Position? _currentPosition;
@@ -296,6 +300,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          SizedBox(
+                              width: screenWidth * .15,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  settings.getState().getName(),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                ),)
+                          ),
                           SizedBox(
                             width: screenWidth * .1,
                             child: const Icon(Icons.electric_bolt_sharp, size: 30, color: Colors.white60,),

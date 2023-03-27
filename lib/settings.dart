@@ -7,13 +7,22 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'home_screen.dart';
 
 class Settings extends StatefulWidget {
-  const Settings({super.key});
+  Settings({super.key});
+  var settingState = null;
 
   @override
-  State<Settings> createState() => _SettingsState();
+  State<Settings> createState() {
+    this.settingState = SettingsState();
+    return this.settingState;
+  }
+
+  SettingsState getState() {
+    return this.settingState;
+  }
+
 }
 
-class _SettingsState extends State<Settings>
+class SettingsState extends State<Settings>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -38,6 +47,7 @@ class _SettingsState extends State<Settings>
   String getMaxHR() {
     return hrController.text;
   }
+
 
   String calculateMaxHRString(String age) {
     return (208 - (0.7 * int.parse(age))).toString();
