@@ -6,8 +6,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'home_screen.dart';
 
+// Class to pass settings value between pages.
+class SettingsStorage {
+  String name = "";
+  String age = "";
+  String maxHR = "";
+}
+
 class Settings extends StatefulWidget {
-  const Settings({super.key});
+  SettingsStorage settings;
+
+  Settings({super.key, required this.settings});
 
   @override
   State<Settings> createState() => _SettingsState();
@@ -41,6 +50,12 @@ class _SettingsState extends State<Settings>
 
   String calculateMaxHRString(String age) {
     return (208 - (0.7 * int.parse(age))).toString();
+  }
+
+  @override
+  void deactivate() {
+
+    super.deactivate();
   }
 
   @override
@@ -94,6 +109,9 @@ class _SettingsState extends State<Settings>
                 child: SizedBox(
                     width: screenWidth / 1.5,
                     child: TextField(
+                        onSubmitted: (value) {
+                          widget.settings.name = getName();
+                        },
                         controller: nameController,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
@@ -119,6 +137,7 @@ class _SettingsState extends State<Settings>
                     child: TextField(
                         onSubmitted: (value) {
                           hrController.text = calculateMaxHRString(value);
+                          widget.settings.age = getAge();
                         },
                         controller: ageController,
                         keyboardType: TextInputType.number,
@@ -144,6 +163,9 @@ class _SettingsState extends State<Settings>
                 child: SizedBox(
                     width: screenWidth / 3,
                     child: TextField(
+                        onChanged: (value) {
+                          widget.settings.maxHR = getMaxHR();
+                        },
                         onSubmitted: (value) {
                           debugPrint(value);
                         },
