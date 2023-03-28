@@ -50,5 +50,11 @@
             android:value="2" />
              <meta-data android:name="com.google.android.geo.API_KEY"
                 android:value="AIzaSyC98JfOjew9kPw8YYBs2x5eGPaDXHlcXN8"/>
+        <receiver android:name="com.transistorsoft.fetch.BackgroundFetchEvent">
+            <intent-filter>
+                <action android:name="com.transistorsoft.fetch.FETCH_EVENT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
