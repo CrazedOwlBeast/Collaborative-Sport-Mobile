@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -643,13 +644,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             widget.logger.loggerEvents.events.add(loggedEvent);
 
                             /// Send logger data to analytics group.
-                            widget.logger.insertToDatabase();
+                            //widget.logger.insertToDatabase();
 
                             // widget.logger.testInsertToDatabase();
 
                             // TODO: grab all information before transitioning to new screen
+                            String jsonString = jsonEncode(widget.logger.toMap());
                             Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
+                                MaterialPageRoute(builder: (context) => CompletedWorkout(jsonString: jsonString,)));
                           });
                         },
                         onPressed: null,

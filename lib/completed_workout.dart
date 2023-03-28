@@ -3,14 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/workout_info.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'workout_database.dart';
 
 
 import 'home_screen.dart';
 
 class CompletedWorkout extends StatefulWidget {
-  const CompletedWorkout({super.key});
+  final String jsonString;
+  const CompletedWorkout({super.key, required this.jsonString});
 
   @override
   State<CompletedWorkout> createState() => _CompletedWorkoutState();
@@ -18,6 +21,7 @@ class CompletedWorkout extends StatefulWidget {
 
 class _CompletedWorkoutState extends State<CompletedWorkout> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String name = '';
   //late var database;
 
 
@@ -31,6 +35,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
     //       );
     //   },
     // );
+    debugPrint(widget.jsonString);
     super.initState();
   }
 
@@ -55,6 +60,9 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                           }
                           return null;
                         },
+                        onChanged: (value) => setState(() {
+                          name = value;
+                        }),
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -68,6 +76,10 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                           ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
+                                //push to database
+                                final workout = Workout(name: name, jsonString: widget.jsonString);
+                                WorkoutDatabase.instance.create(workout);
+
                                 setState(() {
                                   Navigator.of(context).push(
                                       MaterialPageRoute(builder: (context) => const HomeScreen()));

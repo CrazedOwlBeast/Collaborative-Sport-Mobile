@@ -3,18 +3,22 @@ import 'dart:convert';
 final String tableWorkouts = 'workouts';
 
 class WorkoutFields {
+  static final List<String> values = [
+    id, name, jsonString
+  ];
+
   static final String id = '_id';
   static final String name = 'name';
   static final String jsonString = 'jsonString';
 }
 
 class Workout {
-  final int id;
+  final int? id;
   final String name;
   final String jsonString;
 
   const Workout({
-    required this.id,
+    this.id,
     required this.name,
     required this.jsonString,
   });
@@ -49,16 +53,16 @@ class Workout {
       jsonString: jsonString ?? this.jsonString
   );
 
-  // static Workout fromJson(Map<String, Object?> json) {
-  //
-  // }
+  static Workout fromJson(Map<String, Object?> json) => Workout(
+    id: json[WorkoutFields.id] as int?,
+    name: json[WorkoutFields.name] as String,
+    jsonString: json[WorkoutFields.jsonString] as String,
+  );
 
-  Map<String, Object?> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'jsonString': jsonString,
-    };
-  }
+  Map<String, Object?> toJson() => {
+      WorkoutFields.id: id,
+      WorkoutFields.name: name,
+      WorkoutFields.jsonString: jsonString,
+  };
 
 }
