@@ -585,60 +585,78 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                    height: 100,
                                   width: screenWidth/4,
                                 child: _changeDistance ?
-                                RichText(
-                                  text: TextSpan(
-                                    text: ' ${(distance > 15 ? (distance / 1609).toStringAsFixed(2) : 0.0)}',
-                                    style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                    children: const [
-                                      TextSpan(
-                                        text: '\nDistance\n\t\t\t(mi)',
-                                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                      )]))  :
-                                RichText(
-                                  text: TextSpan(
-                                      text: ' ${(distance > 15 ? (distance / 1000).toStringAsFixed(2) : 0.0)}',
+                                  RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      text: '${(distance > 15 ? (distance / 1609).toStringAsFixed(2) : "-")}',
                                       style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
-                                          text: '\nDistance\n\t\t\t(km)',
+                                          text: '\nDistance\n(mi)',
                                           style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                   )]))
-                             )),
-                            ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _changeDistance = !_changeDistance;
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 20, 0, 0)),
-                                  backgroundColor: MaterialStateProperty.all(Colors.black) ,
-                                  overlayColor: MaterialStateProperty.all(Colors.transparent),
-                                  shape: MaterialStateProperty.all(const CircleBorder()),
-                                ),
-                                child: SizedBox(
-                                    height: 100,
-                                    width: screenWidth/4,
-                                child: _changeDistance ?
-                                RichText(
+                                        )
+                                      ]
+                                    )
+                                  )  :
+                                  RichText(
+                                    textAlign: TextAlign.center,
                                     text: TextSpan(
-                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1609) / 60).toStringAsFixed(2) : 0)}',
-                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                        text: '${(distance > 15 ? (distance / 1000).toStringAsFixed(2) : "-")}',
+                                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
-                                            text: '\n\t\t\t\tPace\n\t\t(min/mi)',
+                                            text: '\nDistance\n(km)',
                                             style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                          )]))  :
-                                RichText(
-                                    text: TextSpan(
-                                        text: '\t\t\t ${(distance > 15 ? (((duration.inSeconds / distance) * 1000) / 60).toStringAsFixed(2) : 0)}',
-                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                        children: const [
-                                          TextSpan(
-                                            text: '\n\t\t\t\tPace\n\t\t(min/km)',
-                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                          )]))
-                             ))
+                                          )
+                                        ]
+                                    )
+                                  )
+                            )
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _changeDistance = !_changeDistance;
+                              });
+                            },
+                            style: ButtonStyle(
+                              padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
+                              backgroundColor: MaterialStateProperty.all(Colors.black) ,
+                              overlayColor: MaterialStateProperty.all(Colors.transparent),
+                              shape: MaterialStateProperty.all(const CircleBorder()),
+                            ),
+                            child: SizedBox(
+                                height: 100,
+                                width: screenWidth/4,
+                            child: _changeDistance ?
+                              RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                      text: '${(distance > 15 ? (((duration.inSeconds / distance) * 1609) / 60).toStringAsFixed(2) : "-")}',
+                                      style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                      children: const [
+                                        TextSpan(
+                                          text: '\nPace\n(min/mi)',
+                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                        )
+                                      ]
+                                  )
+                              )  :
+                              RichText(
+                                textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                      text: '${(distance > 15 ? (((duration.inSeconds / distance) * 1000) / 60).toStringAsFixed(2) : "-")}',
+                                      style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                      children: const [
+                                        TextSpan(
+                                          text: '\nPace\n(min/km)',
+                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                        )
+                                      ]
+                                  )
+                              )
+                            )
+                        )
                           ]
                       ),
                     ]
