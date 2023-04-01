@@ -144,15 +144,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         });
       });
 
-      // Broadcast user info to partner.
-      setState(() {
-        userName = widget.settings.name;
-        BluetoothManager.instance.broadcastString('2: $userName');
-
-        userDevice = widget.logger.userDevice?.deviceId;
-        BluetoothManager.instance.broadcastString('3: $userDevice');
-      });
-
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
       initPlatformState();
     }
@@ -313,6 +304,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       var screenWidth = MediaQuery.of(context).size.width;
       var screenHeight = MediaQuery.of(context).size.height;
+
+      // Broadcast user info to partner.
+      // TODO: Don't broadcast all the time
+      setState(() {
+        userName = widget.settings.name;
+        BluetoothManager.instance.broadcastString('2: $userName');
+
+        userDevice = widget.logger.userDevice?.deviceId;
+        BluetoothManager.instance.broadcastString('3: $userDevice');
+      });
 
       var statsRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -697,45 +698,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ),
                 Visibility(
                     visible: stopWorkout,
-                    // child: LongPressButton(logger: widget.logger),
-                    child: ElevatedButton(
-                        style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all(Colors.transparent),
-                            elevation: MaterialStateProperty.all(0.0),
-                            backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
-                        ),
-                        onLongPress: () {
-                          setState(() {
-                            LoggerEvent loggedEvent = LoggerEvent(eventType: 6);
-                            loggedEvent.workoutType = widget.exerciseType;
-                            loggedEvent.processEvent();
-                            widget.logger.loggerEvents.events.add(loggedEvent);
-
-                            widget.logger.workout.endTimestamp = (DateTime.now().millisecondsSinceEpoch * 100).toString();
-
-                            /// Send logger data to analytics group.
-                            widget.logger.insertToDatabase();
-
-                            // widget.logger.testInsertToDatabase();
-
-                            // TODO: grab all information before transitioning to new screen
-                            Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const CompletedWorkout()));
-                          });
-                        },
-                        onPressed: null,
-                        child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.orange,
-                            child:
-                            Icon(Icons.stop, size: 80,color: Colors.white)
-                        )
-                    )
+                    child: LongPressButton(logger: widget.logger, exerciseType: widget.exerciseType)
                 )
               ],
             )
-        ]
-      )
-    );
-  }
+          ]
+        )
+      );
+    }
 }

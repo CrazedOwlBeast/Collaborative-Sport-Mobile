@@ -112,7 +112,7 @@ class LoggerWorkout {
 
   // Constructor.
   LoggerWorkout() {
-    startTimestamp = (DateTime.now().millisecondsSinceEpoch * 100).toString();
+    startTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
@@ -131,13 +131,10 @@ class LoggerWorkout {
     map['workout_type'] = workoutType;
     map['start_timestamp'] = startTimestamp;
     map['end_timestamp'] = endTimestamp;
-    if (partnerDeviceId.isNotEmpty) {
-      map['partners'] = [{ // TODO: Multiple partners?
-        'name': partnerName,
-        'device_id': partnerDeviceId,
-      }];
-    }
-
+    map['partners'] = [{ // TODO: Multiple partners?
+      'name': partnerName,
+      'device_id': partnerDeviceId,
+    }];
     map['heart_rate'] = loggerHeartRate.toMap();
     map['distance'] = loggerDistance.toMap();
 
@@ -177,7 +174,7 @@ class LoggerEvent {
 
   LoggerEvent({required this.eventType}) {
     // Every event has a timestamp.
-    timestamp = (DateTime.now().millisecondsSinceEpoch * 100).toString();
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
 
     map['event_type'] = eventType;
     map['timestamp'] = timestamp;
@@ -324,7 +321,7 @@ class LoggerWorkoutData {
   String? timestamp;
   
   LoggerWorkoutData({required this.value}) {
-    timestamp = (DateTime.now().millisecondsSinceEpoch * 100).toString();
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
   }
 
   Map<String, dynamic> toMap() {
