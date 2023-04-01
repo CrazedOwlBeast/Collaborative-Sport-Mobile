@@ -51,6 +51,7 @@ dependencies:
   device_info_plus: ^8.1.0
   sqflite: ^2.2.5
   path: ^1.8.2
+  background_fetch: ^1.1.5
 
 dev_dependencies:
   flutter_launcher_icons: "^0.11.0"
