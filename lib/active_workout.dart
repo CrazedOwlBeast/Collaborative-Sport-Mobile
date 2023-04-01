@@ -56,6 +56,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool pauseWorkout = true;
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
+
+    int numBroadcasts = 0;
     String peerName = "";
     String peerDeviceId = "";
 
@@ -306,15 +308,17 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       var screenHeight = MediaQuery.of(context).size.height;
 
       // Broadcast user info to partner.
-      // TODO: Don't broadcast all the time
-      setState(() {
-        userName = widget.settings.name;
-        BluetoothManager.instance.broadcastString('2: $userName');
+      if (numBroadcasts < 5) {
+        setState(() {
+          userName = widget.settings.name;
+          BluetoothManager.instance.broadcastString('2: $userName');
 
-        userDevice = widget.logger.userDevice?.deviceId;
-        BluetoothManager.instance.broadcastString('3: $userDevice');
-      });
+          userDevice = widget.logger.userDevice?.deviceId;
+          BluetoothManager.instance.broadcastString('3: $userDevice');
 
+          numBroadcasts++;
+        });
+      }
       var statsRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
