@@ -685,6 +685,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             loggedEvent.processEvent();
                             widget.logger.loggerEvents.events.add(loggedEvent);
 
+                            widget.logger.workout.endTimestamp = (DateTime.now().millisecondsSinceEpoch * 100).toString();
+
                             /// Send logger data to analytics group.
                             widget.logger.insertToDatabase();
 
