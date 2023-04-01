@@ -11,8 +11,6 @@ import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
 import 'package:hello_world/completed_workout.dart';
-import 'package:hello_world/exercise_type.dart';
-import 'package:hello_world/past_workouts.dart';
 import 'package:hello_world/settings.dart';
 
 import 'home_screen.dart';
@@ -55,6 +53,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     String peerName = "";
     String peerDeviceId = "";
 
+    String? userDevice = "";
+    String userName = "";
+    String peerInfo = "";
+
     Position? _initialPosition;
     Position? _currentPosition;
     List<LatLng> _points = [];
@@ -63,6 +65,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     StreamSubscription<List<int>>? subscribeStreamHR;
     StreamSubscription<List<int>>? subscribeStreamPower;
+
     @override
     void initState(){
       super.initState();
@@ -110,29 +113,42 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           }
         }
       }
+
+      // Listen for partner data
       peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {
         setState(() {
           int type = int.parse(event.substring(0, 1));
-          int value = int.parse(event.substring(3));
           switch (type) {
             case 0:
+              int value = int.parse(event.substring(3));
               peerHeartRate = value;
               break;
             case 1:
+              int value = int.parse(event.substring(3));
               peerPower = value;
               break;
             case 2:
-              peerName = value.toString();
+              peerName = event.substring(3, event.length);
               widget.logger.workout.partnerName = peerName;
               break;
             case 3:
-              peerDeviceId = value.toString();
+              peerDeviceId = event.substring(3, event.length);
               widget.logger.workout.partnerDeviceId = peerDeviceId;
               break;
             default:
           }
         });
       });
+
+      // Broadcast user info to partner.
+      setState(() {
+        userName = widget.settings.name;
+        BluetoothManager.instance.broadcastString('2: $userName');
+
+        userDevice = widget.logger.userDevice?.deviceId;
+        BluetoothManager.instance.broadcastString('3: $userDevice');
+      });
+
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
     }
 
@@ -146,7 +162,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         subscribeStreamPower?.cancel();
       }
     super.dispose();
-
       if(_positionStreamSubscription != null) {
         _positionStreamSubscription.cancel();
       }
