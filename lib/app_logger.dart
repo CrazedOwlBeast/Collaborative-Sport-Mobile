@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hello_world/exercise_type.dart';
-
 enum WorkoutType { cycling, running, walking }
 
 // TODO: Transmit logged data.
@@ -27,9 +25,10 @@ class AppLogger {
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
 
+    map['group_id'] = '2'.toString();
     map['name'] = userDevice?.name;
     map['device_id'] = userDevice?.deviceId;
-    map['serial_number'] = userDevice?.serialNumber;
+    // map['serial_number'] = userDevice?.serialNumber;
     map['workout'] = workout.toMap();
     map['events'] = loggerEvents.toMap();
 
@@ -51,9 +50,8 @@ class AppLogger {
       'document': toMap()
     };
 
-    request.write(jsonEncode(body));
-
     debugPrint(jsonEncode(body));
+    request.write(jsonEncode(body));
 
     HttpClientResponse response = await request.close();
     String reply = await response.transform(utf8.decoder).join();
@@ -105,6 +103,7 @@ class LoggerWorkout {
   String workoutType = "";
   LoggerDevice? partnerDevice;
   String? startTimestamp;
+  String? endTimestamp;
   LoggerHeartRate loggerHeartRate = LoggerHeartRate();
   LoggerDistance loggerDistance = LoggerDistance();
 
@@ -113,7 +112,7 @@ class LoggerWorkout {
 
   // Constructor.
   LoggerWorkout() {
-    startTimestamp = DateTime.now().millisecondsSinceEpoch.toString();  // TODO: Is this the correct timestamp format?
+    startTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
@@ -129,14 +128,13 @@ class LoggerWorkout {
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
 
-    // map['workout_type'] = workoutType?.name;
-    // TODO: partner info, workout type
     map['workout_type'] = workoutType;
-    map['partner'] = {
+    map['start_timestamp'] = startTimestamp;
+    map['end_timestamp'] = endTimestamp;
+    map['partners'] = [{ // TODO: Multiple partners?
       'name': partnerName,
       'device_id': partnerDeviceId,
-    };
-    map['start_timestamp'] = startTimestamp;
+    }];
     map['heart_rate'] = loggerHeartRate.toMap();
     map['distance'] = loggerDistance.toMap();
 
@@ -176,13 +174,10 @@ class LoggerEvent {
 
   LoggerEvent({required this.eventType}) {
     // Every event has a timestamp.
-    timestamp = DateTime
-        .now()
-        .millisecondsSinceEpoch
-        .toString(); // TODO: Is this the correct timestamp format?
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
 
     map['event_type'] = eventType;
-    map['time'] = timestamp;
+    map['timestamp'] = timestamp;
   }
 
   void processEvent() {
@@ -326,7 +321,7 @@ class LoggerWorkoutData {
   String? timestamp;
   
   LoggerWorkoutData({required this.value}) {
-    timestamp = DateTime.now().millisecondsSinceEpoch.toString();  // TODO: Is this the correct timestamp format?
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
   }
 
   Map<String, dynamic> toMap() {

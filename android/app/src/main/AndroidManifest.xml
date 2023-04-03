@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.CollaborativeSport">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -14,14 +15,14 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-
-
     <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
     <application
+        tools:replace="android:label"
         android:label="Collaborative-Sport"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -50,5 +51,12 @@
             android:value="2" />
              <meta-data android:name="com.google.android.geo.API_KEY"
                 android:value="AIzaSyC98JfOjew9kPw8YYBs2x5eGPaDXHlcXN8"/>
+        <receiver android:name="com.transistorsoft.fetch.BackgroundFetchEvent"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.transistorsoft.fetch.FETCH_EVENT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
