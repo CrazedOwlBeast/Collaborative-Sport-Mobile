@@ -18,9 +18,18 @@ class PartnerConnect extends StatefulWidget {
   final double dialogHeight;
   final OverlayEntry overlayEntry;
   final AppLogger logger;
+  final String myFullName;
 
-  const PartnerConnect({super.key, required this.deviceType, required this.link,
-            required this.offset, required this.dialogWidth, required this.dialogHeight, required this.overlayEntry, required this.logger});
+  const PartnerConnect(
+      {super.key,
+      required this.deviceType,
+      required this.link,
+      required this.offset,
+      required this.dialogWidth,
+      required this.dialogHeight,
+      required this.overlayEntry,
+      required this.logger,
+      required this.myFullName});
 
   @override
   State<PartnerConnect> createState() => _PartnerConnectState();
@@ -127,10 +136,9 @@ class _PartnerConnectState extends State<PartnerConnect> {
     // if (widget.deviceType == DeviceType.advertiser)
     //   return connectedDevices.length;
 
-      String debugString = devices.length.toString();
-      debugPrint("devices.length: $debugString");
-      return devices.length;
-
+    String debugString = devices.length.toString();
+    debugPrint("devices.length: $debugString");
+    return devices.length;
   }
 
   _onButtonClicked(Device device) {
@@ -163,17 +171,19 @@ class _PartnerConnectState extends State<PartnerConnect> {
     }
     await nearbyService.init(
         serviceType: 'mp-connection',
-        deviceName: devInfo,
+        deviceName: widget.myFullName.isEmpty
+            ? devInfo
+            : widget.myFullName + " (" + devInfo + ")",
         strategy: Strategy.P2P_CLUSTER,
         callback: (isRunning) async {
           if (isRunning) {
-              widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
+            widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
 
-              await nearbyService.stopAdvertisingPeer();
-              await nearbyService.stopBrowsingForPeers();
-              await Future.delayed(Duration(microseconds: 200));
-              nearbyService.startAdvertisingPeer();
-              nearbyService.startBrowsingForPeers();
+            await nearbyService.stopAdvertisingPeer();
+            await nearbyService.stopBrowsingForPeers();
+            await Future.delayed(Duration(microseconds: 200));
+            nearbyService.startAdvertisingPeer();
+            nearbyService.startBrowsingForPeers();
           }
         });
     subscription = BluetoothManager.instance.startStateSubscription();
@@ -181,8 +191,11 @@ class _PartnerConnectState extends State<PartnerConnect> {
       devicesList.forEach((element) {
         print(
             " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");
-        if (element.state == SessionState.connected && !BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
-          BluetoothManager.instance.connectedDevices[element.deviceId] = element;
+        if (element.state == SessionState.connected &&
+            !BluetoothManager.instance.connectedDevices
+                .containsKey(element.deviceId)) {
+          BluetoothManager.instance.connectedDevices[element.deviceId] =
+              element;
 
           LoggerEvent loggerEvent = LoggerEvent(eventType: 9);
           loggerEvent.partnerDeviceId = element.deviceName;
@@ -190,7 +203,9 @@ class _PartnerConnectState extends State<PartnerConnect> {
           loggerEvent.processEvent();
           widget.logger.loggerEvents.events.add(loggerEvent);
         }
-        if (element.state == SessionState.notConnected && BluetoothManager.instance.connectedDevices.containsKey(element.deviceId)) {
+        if (element.state == SessionState.notConnected &&
+            BluetoothManager.instance.connectedDevices
+                .containsKey(element.deviceId)) {
           BluetoothManager.instance.connectedDevices.remove(element.deviceId);
 
           LoggerEvent loggerEvent = LoggerEvent(eventType: 10);
@@ -210,9 +225,6 @@ class _PartnerConnectState extends State<PartnerConnect> {
       });
     });
 
-
-
-
     // StreamSubscription receivedDataSubscription =
     //     nearbyService.dataReceivedSubscription(callback: (data) {
     //       print("dataReceivedSubscription: ${jsonEncode(data)}");
@@ -222,9 +234,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
     //           alignment: Alignment.center,
     //           position: StyledToastPosition.bottom);
     //     });
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -232,131 +242,131 @@ class _PartnerConnectState extends State<PartnerConnect> {
         offset: widget.offset,
         link: widget.link,
         child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(45.0)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(45.0)),
             color: Colors.black,
-            child: Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  SizedBox(
-                    width: widget.dialogWidth * 0.9,
-                    // height: widget.dialogHeight * 0.75,
-                    child:
-                    Column(
-                      children: [
-                        SizedBox(height: widget.dialogWidth * .12,),  // Margin for ListView
-                        Flexible(
-                          child: ListView.builder(
-                              itemCount: getItemCount(),
-                              itemBuilder: (context, index) {
-                                final device = widget.deviceType == DeviceType.advertiser
+            child: Stack(alignment: Alignment.topCenter, children: [
+              SizedBox(
+                width: widget.dialogWidth * 0.9,
+                // height: widget.dialogHeight * 0.75,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: widget.dialogWidth * .12,
+                    ), // Margin for ListView
+                    Flexible(
+                      child: ListView.builder(
+                          itemCount: getItemCount(),
+                          itemBuilder: (context, index) {
+                            final device =
+                                widget.deviceType == DeviceType.advertiser
                                     ? devices[index]
                                     : devices[index];
-                                return Container(
-                                  margin: EdgeInsets.all(8.0),
-                                  child: Column(
+                            return Container(
+                              margin: EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                              child: GestureDetector(
-                                                onTap: () => _onTabItemListener(device),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                        device.deviceName,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                        ),
-                                                    ),
-                                                    Text(
-                                                      getStateName(device.state),
-                                                      style: TextStyle(
-                                                          color: getStateColor(device.state)),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )),
-                                          // Request connect
-                                          GestureDetector(
-                                            onTap: () => _onButtonClicked(device),
-                                            child: Container(
-                                              margin: EdgeInsets.symmetric(horizontal: 8.0),
-                                              padding: EdgeInsets.all(8.0),
-                                              height: 35,
-                                              width: 100,
-                                              color: getButtonColor(device.state),
-                                              child: Center(
-                                                child: Text(
-                                                  getButtonStateName(device.state),
-                                                  style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight: FontWeight.bold),
-                                                ),
+                                      Expanded(
+                                          child: GestureDetector(
+                                        onTap: () => _onTabItemListener(device),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              device.deviceName,
+                                              style: const TextStyle(
+                                                color: Colors.white,
                                               ),
                                             ),
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: 8.0,
-                                      ),
-                                      const Divider(
-                                        height: 1,
-                                        color: Colors.grey,
+                                            Text(
+                                              getStateName(device.state),
+                                              style: TextStyle(
+                                                  color: getStateColor(
+                                                      device.state)),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                      // Request connect
+                                      GestureDetector(
+                                        onTap: () => _onButtonClicked(device),
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          padding: EdgeInsets.all(8.0),
+                                          height: 35,
+                                          width: 100,
+                                          color: getButtonColor(device.state),
+                                          child: Center(
+                                            child: Text(
+                                              getButtonStateName(device.state),
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
                                       )
                                     ],
                                   ),
-                                );
-                              }),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: widget.dialogHeight * 0.15,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                            width: widget.dialogWidth * .12,
-                            height: widget.dialogWidth * .12,
-                            top: widget.dialogWidth * .05,
-                            right: widget.dialogWidth * .05,
-                            child: FloatingActionButton(
-                                mini: true,
-                                backgroundColor: Colors.red,
-                                onPressed: () {
-                                  widget.overlayEntry.remove();
-                                },
-                                child: Icon(Icons.clear_rounded, size: widget.dialogWidth * .11)
-                            )),
-                        Positioned(
-                          top: widget.dialogWidth * .05,
-                          left: widget.dialogWidth * .15,
-                            height: widget.dialogHeight*.12,
-                            width: widget.dialogWidth*.6,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.topLeft,
-                              child: Text('Discovered Partners:',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.openSans(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.7,
-                                      color: Colors.white
+                                  const SizedBox(
+                                    height: 8.0,
+                                  ),
+                                  const Divider(
+                                    height: 1,
+                                    color: Colors.grey,
                                   )
+                                ],
                               ),
-                            )
-                        )
-                      ],
+                            );
+                          }),
                     ),
-                  )
-
-                ])
-        ));
+                  ],
+                ),
+              ),
+              Container(
+                height: widget.dialogHeight * 0.15,
+                child: Stack(
+                  children: [
+                    Positioned(
+                        width: widget.dialogWidth * .12,
+                        height: widget.dialogWidth * .12,
+                        top: widget.dialogWidth * .05,
+                        right: widget.dialogWidth * .05,
+                        child: FloatingActionButton(
+                            mini: true,
+                            backgroundColor: Colors.red,
+                            onPressed: () {
+                              widget.overlayEntry.remove();
+                            },
+                            child: Icon(Icons.clear_rounded,
+                                size: widget.dialogWidth * .11))),
+                    Positioned(
+                        top: widget.dialogWidth * .05,
+                        left: widget.dialogWidth * .15,
+                        height: widget.dialogHeight * .12,
+                        width: widget.dialogWidth * .6,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.topLeft,
+                          child: Row(children: [
+                            Text('Searching for partners',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.openSans(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.7,
+                                    color: Colors.white)),
+                            Padding(padding: EdgeInsets.only(left: 15.0)),
+                            CircularProgressIndicator()
+                          ]),
+                        ))
+                  ],
+                ),
+              )
+            ])));
   }
-
 }
-
-
