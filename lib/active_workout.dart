@@ -56,6 +56,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool pauseWorkout = true;
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
+    StreamSubscription? stateSubsciption;
 
     int numBroadcasts = 0;
     String peerName = "";
@@ -146,6 +147,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         });
       });
 
+      stateSubsciption = BluetoothManager.instance.reconnectStateSubscription();
+
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
       initPlatformState();
     }
@@ -192,8 +195,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        //BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
-        //BluetoothManager.instance.broadcastString('1: ${150}');
+        BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
+        BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
       });
     }
 

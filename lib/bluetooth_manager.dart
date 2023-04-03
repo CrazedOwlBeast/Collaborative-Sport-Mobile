@@ -31,7 +31,6 @@ class BluetoothManager {
       print("dataReceivedSubscription: $receivedData");
       updateDeviceData(data['message']);
     });
-    //TODO: Log creation
   }
 
   //TODO: implement
@@ -62,6 +61,26 @@ class BluetoothManager {
             }
             if (element.state == SessionState.notConnected && connectedDevices.containsKey(element.deviceId)) {
               connectedDevices.remove(element.deviceId);
+            }
+          });
+        });
+    return stateSubscription;
+  }
+
+  StreamSubscription? reconnectStateSubscription() {
+    stateSubscription?.cancel();
+    stateSubscription =
+        nearbyService.stateChangedSubscription(callback: (devicesList) {
+          devicesList.forEach((device) {
+            print(
+                " deviceId: ${device.deviceId} | deviceName: ${device.deviceName} | state: ${device.state}");
+
+            if (BluetoothManager.instance.connectedDevices.containsKey(device.deviceId) && device.state == SessionState.notConnected) {
+              //attempt to reconnect
+              BluetoothManager.nearbyService.invitePeer(
+                deviceID: device.deviceId,
+                deviceName: device.deviceName,
+              );
             }
           });
         });
