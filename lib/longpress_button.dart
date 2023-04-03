@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,13 +40,15 @@ class _LongPressButtonState extends State<LongPressButton> {
           widget.logger.workout.endTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
 
           /// Send logger data to analytics group.
-          widget.logger.insertToDatabase();
+          //widget.logger.insertToDatabase();
 
           // widget.logger.testInsertToDatabase();
 
           // TODO: grab all information before transitioning to new screen
+          String jsonString = jsonEncode(widget.logger.toMap());
+
           Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const CompletedWorkout()));
+              MaterialPageRoute(builder: (context) => CompletedWorkout(jsonString: jsonString,)));
         }
       });
     });

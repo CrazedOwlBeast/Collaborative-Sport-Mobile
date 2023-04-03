@@ -42,7 +42,15 @@ class _PastWorkoutsState extends State<PastWorkouts> {
     String _getStartTime(int index) {
       Map<String, dynamic> log = jsonDecode(workouts[index].jsonString);
       Map<String, dynamic> workout = log['workout'];
-      return workout['start_timestamp'];
+      //DateTime? date = DateTime.tryParse(workout['start_timestamp']);
+      int? ms = int.tryParse(workout['start_timestamp']);
+      if (ms != null) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch((ms*1000));
+        return date.toString();
+      }
+      else {
+        return "NULL";
+      }
     }
 
     @override
