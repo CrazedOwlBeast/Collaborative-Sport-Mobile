@@ -330,7 +330,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           color: Colors.black,
           child:
               SizedBox(
-                width: screenWidth * .5,
+                width: screenWidth * .45,
                 child: Column(
                   children: [
                     SizedBox(
@@ -413,7 +413,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             color: Colors.black,
             child:
             SizedBox(
-              width: screenWidth * .5,
+              width: screenWidth * .45,
               child: Column(
                 children: [
                   SizedBox(
