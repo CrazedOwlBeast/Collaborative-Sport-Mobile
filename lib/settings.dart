@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/settings_model.dart';
+import 'package:hello_world/workout_database.dart';
 
 import 'home_screen.dart';
 
@@ -30,10 +32,26 @@ class _SettingsState extends State<Settings>
   final nameController = TextEditingController();
   final ageController = TextEditingController();
   final hrController = TextEditingController();
+  int? profileID;
 
   @override
   void initState() {
     super.initState();
+    _getPreviousSettings();
+  }
+
+  Future _getPreviousSettings() async {
+    ProfileSettings? previous = await WorkoutDatabase.instance.readSettings();
+    if (previous != null) {
+      nameController.text = previous.name;
+      profileID = previous.id;
+      if (previous.age != null) {
+        ageController.text = previous.age.toString();
+      }
+      if (previous.maxHR != null) {
+        hrController.text = previous.maxHR.toString();
+      }
+    }
   }
 
   String getName() {
@@ -56,6 +74,22 @@ class _SettingsState extends State<Settings>
   void deactivate() {
 
     super.deactivate();
+  }
+
+  void _saveSettings() async {
+    String name = getName();
+    String ageString = getAge();
+    int? age = int.tryParse(ageString);
+    String maxHRString = getMaxHR();
+    int? maxHR = int.tryParse(maxHRString);
+    ProfileSettings settings;
+    if (profileID == null) {
+      settings = ProfileSettings(name: name, age: age, maxHR: maxHR);
+    } else {
+      settings = ProfileSettings(id: profileID, name: name, age: age, maxHR: maxHR);
+    }
+    ProfileSettings newSettings = await WorkoutDatabase.instance.updateSettings(settings);
+    profileID = newSettings.id;
   }
 
   @override
@@ -177,8 +211,13 @@ class _SettingsState extends State<Settings>
                           fillColor: Colors.grey,
                           hintText: 'Enter max HR',
                         )))),
-            Padding(padding: EdgeInsets.all(10))
-          ]))
+            Padding(padding: EdgeInsets.all(10)),
+            ElevatedButton(
+                onPressed: _saveSettings,
+                child: const Text('Save Settings'),
+            )
+          ])
+      )
     ]);
   }
 }

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hello_world/workout_info.dart';
+import 'package:hello_world/workout_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'workout_database.dart';
@@ -27,15 +27,6 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
 
   @override
   void initState() {
-    // database = openDatabase(
-    //   join(await getDatabasesPath(), 'collaborative_sport.db'),
-    //   onCreate: (db, version) {
-    //       return db.execute(
-    //         'CREATE TABLE workout(name TEXT, workout_info TEXT)',
-    //       );
-    //   },
-    // );
-    debugPrint(widget.jsonString);
     super.initState();
   }
 
@@ -78,7 +69,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                               if (_formKey.currentState!.validate()) {
                                 //push to database
                                 final workout = Workout(name: name, jsonString: widget.jsonString);
-                                WorkoutDatabase.instance.create(workout);
+                                WorkoutDatabase.instance.createWorkout(workout);
 
                                 setState(() {
                                   Navigator.of(context).push(

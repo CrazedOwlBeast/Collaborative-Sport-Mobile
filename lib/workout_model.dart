@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 final String tableWorkouts = 'workouts';
 
 class WorkoutFields {
@@ -22,26 +20,6 @@ class Workout {
     required this.name,
     required this.jsonString,
   });
-
-  // final String type;
-  // final List<String> partners;
-  // final double duration;
-  // final double distance;
-  // /*
-  // List<int>? hr;
-  // List<int>? speed;
-  // */
-  //
-  // Workout({
-  //   required this.type,
-  //   required this.duration,
-  //   required this.distance,
-  //   required this.partners,
-  //   /*
-  //   this.hr,
-  //   this.speed
-  //    */
-  // });
 
   Workout copy({
     int? id,

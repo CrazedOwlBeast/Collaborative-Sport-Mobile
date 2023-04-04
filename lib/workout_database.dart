@@ -1,7 +1,8 @@
+import 'package:hello_world/settings_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 //import model
-import 'workout_info.dart';
+import 'workout_model.dart';
 
 class WorkoutDatabase {
   static final WorkoutDatabase instance = WorkoutDatabase._init();
@@ -26,6 +27,7 @@ class WorkoutDatabase {
   Future _createDB(Database db, int version) async {
     final idType = 'integer primary key autoincrement';
     final textType = 'text not null';
+    final intType = 'integer';
 
     await db.execute('''
     CREATE TABLE $tableWorkouts (
@@ -34,16 +36,56 @@ class WorkoutDatabase {
     ${WorkoutFields.jsonString} $textType
     )
     ''');
+
+    await db.execute('''
+    CREATE TABLE $tableSettings (
+    ${SettingsFields.id} $idType,
+    ${SettingsFields.name} $textType,
+    ${SettingsFields.age} $intType,
+    ${SettingsFields.maxHR} $intType,
+    ${SettingsFields.ftp} $intType
+    )
+    ''');
   }
 
-  Future<Workout> create(Workout workout) async {
+  Future<ProfileSettings> updateSettings(ProfileSettings settings) async {
+    final db = await instance.database;
+
+    List maps = await db.query(tableSettings);
+    int id;
+    if (maps.isEmpty) {
+      id = await db.insert(tableSettings, settings.toJson());
+    }
+    else {
+      id = await db.update(
+          tableSettings,
+          settings.toJson(),
+          where: '_id = ?',
+          whereArgs: [settings.id],
+      );
+    }
+    return settings.copy(id: id);
+  }
+
+  Future<ProfileSettings?> readSettings() async {
+    final db = await instance.database;
+
+    final maps = await db.query(tableSettings);
+    if (maps.isNotEmpty) {
+      return ProfileSettings.fromJson(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<Workout> createWorkout(Workout workout) async {
     final db = await instance.database;
 
     final id = await db.insert(tableWorkouts, workout.toJson());
     return workout.copy(id: id);
   }
 
-  Future<Workout> readWorkout(int id) async {
+  Future<Workout?> readWorkout(int id) async {
     final db = await instance.database;
 
     final maps = await db.query(
@@ -56,7 +98,7 @@ class WorkoutDatabase {
     if (maps.isNotEmpty) {
       return Workout.fromJson(maps.first);
     } else {
-      throw Exception('ID $id not found');
+      return null;
     }
   }
 
@@ -67,7 +109,7 @@ class WorkoutDatabase {
     return result.map((json) => Workout.fromJson(json)).toList();
   }
 
-  Future<int> delete(int id) async {
+  Future<int> deleteWorkout(int id) async {
     final db = await instance.database;
 
     return await db.delete(

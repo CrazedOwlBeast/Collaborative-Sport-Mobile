@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/workout_database.dart';
-import 'package:hello_world/workout_info.dart';
+import 'package:hello_world/workout_model.dart';
 
 
 import 'home_screen.dart';
