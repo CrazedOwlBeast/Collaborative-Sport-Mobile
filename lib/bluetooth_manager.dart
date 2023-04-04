@@ -33,7 +33,7 @@ class BluetoothManager {
     });
   }
 
-  //TODO: implement
+  //unused, implement later
   Future<void> disconnect(int id) async {
 
   }
