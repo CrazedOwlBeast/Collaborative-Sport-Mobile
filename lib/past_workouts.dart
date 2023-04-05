@@ -119,29 +119,3 @@ class _PastWorkoutsState extends State<PastWorkouts> {
     );
   }
 }
-
-Column getPreviousWorkouts()
-{
-  return Column(
-      children: [
-        ListView(
-          // children:
-          //   [
-          //     ...workouts
-          //         .map(
-          //             (workout) => ListTile(
-          //           title: Text(
-          //             workout.name,
-          //             style: TextStyle(
-          //                 color: Colors.white,
-          //                 fontSize: 25
-          //             ),
-          //           ),
-          //         )
-          //     )
-          //   ],
-        )
-      ]
-  );
-}
-

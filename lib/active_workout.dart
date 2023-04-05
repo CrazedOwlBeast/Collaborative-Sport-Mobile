@@ -115,7 +115,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     deviceId: device.deviceId
                 )).listen((event) {
               setState(() {
-                power = event[1];
+                power = event[2];
                 BluetoothManager.instance.broadcastString('1: $power');
               });
             });
@@ -195,8 +195,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
-        BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
+        //BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
+        //BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
       });
     }
 
