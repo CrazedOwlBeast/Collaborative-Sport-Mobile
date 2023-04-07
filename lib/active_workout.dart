@@ -115,7 +115,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     deviceId: device.deviceId
                 )).listen((event) {
               setState(() {
-                power = event[2];
+                //Power can take two bytes, get upper byte
+                int temp = event[3];
+                //convert from little endian
+                temp = event[3] << 8;
+                //add to lower byte
+                power = event[2] + temp;
                 BluetoothManager.instance.broadcastString('1: $power');
               });
             });

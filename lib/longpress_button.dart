@@ -40,7 +40,7 @@ class _LongPressButtonState extends State<LongPressButton> {
           widget.logger.workout.endTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
 
           /// Send logger data to analytics group.
-          widget.logger.insertToDatabase();
+          //widget.logger.insertToDatabase();
 
           // widget.logger.testInsertToDatabase();
 
