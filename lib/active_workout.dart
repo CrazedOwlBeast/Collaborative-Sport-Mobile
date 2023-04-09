@@ -78,7 +78,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     @override
     void initState(){
       super.initState();
-
+      widget.logger.startWorkout();
       widget.logger.workout.workoutType = widget.exerciseType;
 
       // _getUserLocation();

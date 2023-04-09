@@ -21,6 +21,10 @@ class AppLogger {
     loggerEvents.events.add(loggedEvent);
   }
 
+  void startWorkout() {
+    workout = LoggerWorkout();
+  }
+
   // Prepare serializable object for export.
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
@@ -112,7 +116,7 @@ class LoggerWorkout {
 
   // Constructor.
   LoggerWorkout() {
-    startTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
+    startTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
@@ -174,7 +178,7 @@ class LoggerEvent {
 
   LoggerEvent({required this.eventType}) {
     // Every event has a timestamp.
-    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
 
     map['event_type'] = eventType;
     map['timestamp'] = timestamp;
@@ -321,7 +325,7 @@ class LoggerWorkoutData {
   String? timestamp;
   
   LoggerWorkoutData({required this.value}) {
-    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();;
+    timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
   }
 
   Map<String, dynamic> toMap() {

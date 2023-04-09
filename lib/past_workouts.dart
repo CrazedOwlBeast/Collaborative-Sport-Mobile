@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/workout_database.dart';
 import 'package:hello_world/workout_model.dart';
+import 'package:intl/intl.dart';
 
 
 import 'home_screen.dart';
@@ -46,10 +47,11 @@ class _PastWorkoutsState extends State<PastWorkouts> {
       int? ms = int.tryParse(workout['start_timestamp']);
       if (ms != null) {
         DateTime date = DateTime.fromMillisecondsSinceEpoch((ms*1000));
-        return date.toString();
+        String time = DateFormat.jm().format(date);
+        return "$time ${date.month}/${date.day}/${date.year}";
       }
       else {
-        return "NULL";
+        return "Date not found";
       }
     }
 
