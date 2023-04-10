@@ -333,7 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Function to show dialog when action buttons are pressed.
-  // TODO: Make stateful?
   _showDialog(
       BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
     continueCallBack() => {Navigator.of(context).pop()};

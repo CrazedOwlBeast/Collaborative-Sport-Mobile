@@ -1,8 +1,11 @@
+import 'dart:core';
+
 import 'package:hello_world/settings_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 //import model
 import 'workout_model.dart';
+import 'logs_model.dart';
 
 class WorkoutDatabase {
   static final WorkoutDatabase instance = WorkoutDatabase._init();
@@ -46,6 +49,42 @@ class WorkoutDatabase {
     ${SettingsFields.ftp} $intType
     )
     ''');
+
+    await db.execute('''
+    CREATE TABLE $tableLogs (
+    ${LogsFields.id} $idType,
+    ${LogsFields.log} $textType
+    )
+    ''');
+  }
+
+  void addLog(String logToSend) async {
+    final db = await instance.database;
+
+    Map<String, Object?> logMap = {
+      "log" : logToSend
+    };
+    await db.insert(tableLogs, logMap);
+  }
+
+  // TODO: Delete logs individually as they are sent.
+  void deleteLogs() async {
+    final db = await instance.database;
+    db.delete(tableLogs);
+  }
+
+  Future<List<String>> getLogs() async {
+    List<String> logs = [];
+
+    final db = await instance.database;
+    List maps = await db.query(tableLogs);
+    if (maps.isNotEmpty) {
+      for (var map in maps) {
+        logs.add(map['log']);
+      }
+    }
+
+    return logs;
   }
 
   Future<ProfileSettings> updateSettings(ProfileSettings settings) async {

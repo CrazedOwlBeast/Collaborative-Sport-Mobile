@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'dart:io';
+
+import 'workout_database.dart';
 
 enum WorkoutType { cycling, running, walking }
 
@@ -24,9 +28,21 @@ class AppLogger {
     loggedEvent.currentPage = "home_page";
     loggedEvent.processEvent();
     loggerEvents.events.add(loggedEvent);
+
+    getLogsFromDb();
   }
 
-  // TODO: Does this update after workout is started?
+  // Check local db for logs to send.
+  void getLogsFromDb() async {
+    List<String> logsToSend = await WorkoutDatabase.instance.getLogs();
+    if (logsToSend.isNotEmpty) {
+      for (String log in logsToSend) {
+        workoutMaps.add(jsonDecode(log));
+      }
+      workoutsToSend = true;
+    }
+  }
+
   void startWorkout() {
     workout = LoggerWorkout();
     workouts.add(workout!);
@@ -59,6 +75,9 @@ class AppLogger {
       map['events'] = loggerEvents.toMap();
 
       workoutMaps.add(map);
+
+      // Save logs to local db in case app is closed before successful send.
+      WorkoutDatabase.instance.addLog(jsonEncode(map));
     }
 
     // Clear workouts list and return list of prepared logs.
@@ -114,6 +133,7 @@ class AppLogger {
       // All logs have sent successfully.
       workoutsToSend = false;
       sending = false;
+      WorkoutDatabase.instance.deleteLogs();
     }
 
     on Exception catch (_) {
