@@ -9,7 +9,12 @@ enum WorkoutType { cycling, running, walking }
 class AppLogger {
   LoggerDevice? userDevice;
 
-  LoggerWorkout workout = LoggerWorkout();
+  List<Map<String, dynamic>> workoutMaps = [];
+  List<LoggerWorkout> workouts = [];
+  bool workoutsToSend = false;
+  bool sending = false;
+
+  LoggerWorkout? workout;
   LoggerEvents loggerEvents = LoggerEvents();
 
 
@@ -21,83 +26,100 @@ class AppLogger {
     loggerEvents.events.add(loggedEvent);
   }
 
+  // TODO: Does this update after workout is started?
   void startWorkout() {
     workout = LoggerWorkout();
+    workouts.add(workout!);
   }
 
-  // Prepare serializable object for export.
-  Map<String, dynamic> toMap() {
+  // Prepare object for saving to local sqlite db.
+  Map<String, dynamic> toSave() {
     Map<String, dynamic> map = {};
 
     map['group_id'] = '2'.toString();
     map['name'] = userDevice?.name;
     map['device_id'] = userDevice?.deviceId;
     // map['serial_number'] = userDevice?.serialNumber;
-    map['workout'] = workout.toMap();
+    map['workout'] = workout?.toMap();
     map['events'] = loggerEvents.toMap();
 
     return map;
   }
 
-  // Function to send JSON data to analytics group.
-  void insertToDatabase() async {
+  // Prepare serializable object for export.
+  List<Map<String, dynamic>> toMap() {
+    for (LoggerWorkout _workout in workouts) {
+      Map<String, dynamic> map = {};
 
-    HttpClient httpClient = HttpClient();
-    HttpClientRequest request = await httpClient.postUrl(Uri.parse('https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
-    request.headers.set('apiKey', 'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
-    request.headers.contentType = ContentType('application', 'json');
+      map['group_id'] = '2'.toString();
+      map['name'] = userDevice?.name;
+      map['device_id'] = userDevice?.deviceId;
+      // map['serial_number'] = userDevice?.serialNumber;
+      map['workout'] = _workout.toMap();
+      map['events'] = loggerEvents.toMap();
 
-    Map<String, dynamic> body = {
-      'dataSource': 'FitnessLog',
-      'database': 'FitnessLog',
-      'collection': 'Test',
-      'document': toMap()
-    };
-
-    debugPrint(jsonEncode(body));
-    request.write(jsonEncode(body));
-
-    HttpClientResponse response = await request.close();
-    String reply = await response.transform(utf8.decoder).join();
-    httpClient.close();
-
-    if (response.statusCode == 200) {
-      debugPrint(reply);
-      // debugPrint(await response.stream.bytesToString());
+      workoutMaps.add(map);
     }
-    else {
-      debugPrint(response.reasonPhrase);
-    }
+
+    // Clear workouts list and return list of prepared logs.
+    workouts.clear();
+    return workoutMaps;
   }
 
-  void testInsertToDatabase() async {
-    HttpClient httpClient = HttpClient();
-    HttpClientRequest request = await httpClient.postUrl(Uri.parse("https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/find"));
-
-    request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
-
-    request.headers.set("apiKey", "e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg");
-    // request.headers.set("Content-Type", "application/json");
-
-    request.write(jsonEncode(
-        {
-          "dataSource": "FitnessLog",
-          "database": "FitnessLog",
-          "collection": "Test",
-        }
-    ));
-
-    HttpClientResponse response = await request.close();
-    String reply = await response.transform(utf8.decoder).join();
-    httpClient.close();
-
-    if (response.statusCode == 200) {
-      debugPrint(reply);
-      //debugPrint(await response.stream.bytesToString());
+  // Function to send JSON data to analytics group.
+  void uploadWorkoutLogs() async {
+    sending = true;
+    if (workouts.isNotEmpty) {
+      toMap();
     }
-    else {
-      debugPrint(response.statusCode.toString());
-      debugPrint(response.reasonPhrase);
+
+    try {
+      while (workoutMaps.isNotEmpty) {
+        HttpClient httpClient = HttpClient();
+        HttpClientRequest request = await httpClient.postUrl(Uri.parse(
+            'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
+        request.headers.set('apiKey',
+            'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
+        request.headers.contentType = ContentType('application', 'json');
+
+        Map<String, dynamic> body = {
+          'dataSource': 'FitnessLog',
+          'database': 'FitnessLog',
+          'collection': 'Test',
+          'document': workoutMaps.last
+        };
+
+        debugPrint(jsonEncode(body));
+        request.write(jsonEncode(body));
+
+        HttpClientResponse response = await request.close();
+        String reply = await response.transform(utf8.decoder).join();
+        httpClient.close();
+
+        if (response.statusCode == 201) {
+          debugPrint(reply);
+          workoutMaps.removeLast();
+          // debugPrint(await response.stream.bytesToString());
+        }
+        else {
+          // Save for later if data can't be sent.
+          workoutsToSend = true;
+          debugPrint(response.reasonPhrase);
+          // Stop trying to send for now.
+          sending = false;
+          break;
+        }
+      }
+
+      // All logs have sent successfully.
+      workoutsToSend = false;
+      sending = false;
+    }
+
+    on Exception catch (_) {
+      workoutsToSend = true;
+      sending = false;
+      debugPrint('No network connection, saving logs for later...');
     }
   }
 }
@@ -110,6 +132,8 @@ class LoggerWorkout {
   String? endTimestamp;
   LoggerHeartRate loggerHeartRate = LoggerHeartRate();
   LoggerDistance loggerDistance = LoggerDistance();
+  LoggerPower loggerPower = LoggerPower();
+  LoggerLocation loggerLocation = LoggerLocation();
 
   String partnerName = "";
   String partnerDeviceId = "";
@@ -120,14 +144,25 @@ class LoggerWorkout {
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerHeartRate.data.
-  void logHeartRate(int heartRate) {
+  void logHeartRate(String heartRate) {
     loggerHeartRate.data.add(LoggerWorkoutData(value: heartRate));
   }
 
   // Create a new LoggerWorkoutData object and add it to loggerDistance.data.
-  void logDistance(int distance) {
+  void logDistance(String distance) {
     loggerDistance.data.add(LoggerWorkoutData(value: distance));
   }
+
+  // Create a new LoggerWorkoutData object and add it to loggerPower.data.
+  void logPower(String power) {
+    loggerPower.data.add(LoggerWorkoutData(value: power));
+  }
+
+  // Create a new LoggerWorkoutData object and add it to loggerLocation.data.
+  void logLocation(String location) {
+    loggerLocation.data.add(LoggerWorkoutData(value: location));
+  }
+
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
@@ -139,8 +174,19 @@ class LoggerWorkout {
       'name': partnerName,
       'device_id': partnerDeviceId,
     }];
-    map['heart_rate'] = loggerHeartRate.toMap();
-    map['distance'] = loggerDistance.toMap();
+
+    if (loggerHeartRate.data.isNotEmpty) {
+      map['heart_rate'] = loggerHeartRate.toMap();
+    }
+    if (loggerDistance.data.isNotEmpty) {
+      map['distance'] = loggerDistance.toMap();
+    }
+    if (loggerPower.data.isNotEmpty) {
+      map['power'] = loggerPower.toMap();
+    }
+    if (loggerPower.data.isNotEmpty) {
+      map['location'] = loggerLocation.toMap();
+    }
 
     return map;
   }
@@ -277,9 +323,10 @@ class LoggerDevice {
   String serialNumber = "";
 }
 
+// TODO: These could probably all be one class...
 // Class to store heart rate data.
 class LoggerHeartRate {
-  String units = "";
+  String units = "beats_per_minute";
   String maxHeartRate = "";
   List<LoggerWorkoutData> data = [];
 
@@ -301,7 +348,47 @@ class LoggerHeartRate {
 
 // Class to store distance data.
 class LoggerDistance {
-  String units = "";
+  String units = "meters";
+  List<LoggerWorkoutData> data = [];
+
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
+
+    map['units'] = units;
+
+    List<Map<String, dynamic>> dataMap = [];
+    for (LoggerWorkoutData event in data) {
+      dataMap.add(event.toMap());
+    }
+    map['data'] = dataMap;
+
+    return map;
+  }
+}
+
+// Class to store power data.
+class LoggerPower {
+  String units = "watts";
+  List<LoggerWorkoutData> data = [];
+
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
+
+    map['units'] = units;
+
+    List<Map<String, dynamic>> dataMap = [];
+    for (LoggerWorkoutData event in data) {
+      dataMap.add(event.toMap());
+    }
+    map['data'] = dataMap;
+
+    return map;
+  }
+}
+
+// Class to store location data.
+class LoggerLocation {
+  String units = "latitude/longitude";
   List<LoggerWorkoutData> data = [];
 
   Map<String, dynamic> toMap() {
@@ -321,7 +408,7 @@ class LoggerDistance {
 
 // Data object for workout lists
 class LoggerWorkoutData {
-  final int value;
+  final String value;
   String? timestamp;
   
   LoggerWorkoutData({required this.value}) {

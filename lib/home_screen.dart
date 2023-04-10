@@ -467,6 +467,10 @@ class _HomeScreenState extends State<HomeScreen> {
     device.name = settings.name;
     logger.userDevice = device;
 
+    if (logger.workoutsToSend && !logger.sending) {
+      logger.uploadWorkoutLogs();
+    }
+
     final List<Widget> _children = [
       CompositedTransformTarget(
         link: layerLink,

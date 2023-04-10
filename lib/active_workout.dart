@@ -79,7 +79,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     void initState(){
       super.initState();
       widget.logger.startWorkout();
-      widget.logger.workout.workoutType = widget.exerciseType;
+      widget.logger.workout?.workoutType = widget.exerciseType;
 
       // _getUserLocation();
       _getCurrentLocation();
@@ -103,7 +103,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 // Broadcast heartrate to partner.
                 BluetoothManager.instance.broadcastString('0: $heartrate');
                 // Log heartrate.
-                widget.logger.workout.logHeartRate(event[1]);
+                widget.logger.workout?.logHeartRate(event[1].toString());
               });
             });
           }
@@ -122,6 +122,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 //add to lower byte
                 power = event[2] + temp;
                 BluetoothManager.instance.broadcastString('1: $power');
+
+                // Log power.
+                widget.logger.workout?.logHeartRate(event[1].toString());
               });
             });
           }
@@ -141,11 +144,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               break;
             case 2:
               peerName = event.substring(3, event.length);
-              widget.logger.workout.partnerName = peerName;
+              widget.logger.workout?.partnerName = peerName;
               break;
             case 3:
               peerDeviceId = event.substring(3, event.length);
-              widget.logger.workout.partnerDeviceId = peerDeviceId;
+              widget.logger.workout?.partnerDeviceId = peerDeviceId;
               break;
             default:
           }
@@ -292,9 +295,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           // Log the distance every meter.
           // TODO: Determine logging interval for distance.
           if (distance.floor() > lastLoggedDistance + 1) {
-            widget.logger.workout.logDistance(distance.floor());
+            widget.logger.workout?.logDistance(distance.floor().toString());
             lastLoggedDistance = distance.floor();
           }
+
+          // Log the latitude/longitude
+          // TODO: Determine logging interval for location.
+          String location = "${newPosition.latitude}/${newPosition.longitude}";
+          widget.logger.workout?.logLocation(location);
+
+          // C
         }
       });
     }

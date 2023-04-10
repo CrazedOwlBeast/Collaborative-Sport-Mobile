@@ -37,15 +37,13 @@ class _LongPressButtonState extends State<LongPressButton> {
           loggedEvent.processEvent();
           widget.logger.loggerEvents.events.add(loggedEvent);
 
-          widget.logger.workout.endTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+          widget.logger.workout?.endTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
 
           /// Send logger data to analytics group.
-          widget.logger.insertToDatabase();
-
-          // widget.logger.testInsertToDatabase();
+          widget.logger.uploadWorkoutLogs();
 
           // TODO: grab all information before transitioning to new screen
-          String jsonString = jsonEncode(widget.logger.toMap());
+          String jsonString = jsonEncode(widget.logger.toSave());
 
           Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => CompletedWorkout(jsonString: jsonString,)));
