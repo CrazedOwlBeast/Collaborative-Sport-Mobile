@@ -58,7 +58,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     late StreamSubscription peerSubscription;
     StreamSubscription? stateSubsciption;
 
-    int numBroadcasts = 0;
+    bool peerNameConfirmed = false;
+    bool peerDeviceConfirmed = false;
+
     String peerName = "";
     String peerDeviceId = "";
 
@@ -145,10 +147,18 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             case 2:
               peerName = event.substring(3, event.length);
               widget.logger.workout?.partnerName = peerName;
+              BluetoothManager.instance.broadcastString('4');
               break;
             case 3:
               peerDeviceId = event.substring(3, event.length);
               widget.logger.workout?.partnerDeviceId = peerDeviceId;
+              BluetoothManager.instance.broadcastString('5');
+              break;
+            case 4:
+              peerNameConfirmed = true;
+              break;
+            case 5:
+              peerDeviceConfirmed = true;
               break;
             default:
           }
@@ -326,22 +336,26 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       var screenHeight = MediaQuery.of(context).size.height;
 
       // Broadcast user info to partner.
-      if (numBroadcasts < 5) {
+      if (!peerNameConfirmed) {
         setState(() {
           userName = widget.settings.name;
           BluetoothManager.instance.broadcastString('2: $userName');
-
-          userDevice = widget.logger.userDevice?.deviceId;
-          BluetoothManager.instance.broadcastString('3: $userDevice');
-
-          numBroadcasts++;
         });
       }
+      if (!peerDeviceConfirmed) {
+        setState(() {
+          userDevice = widget.logger.userDevice?.deviceId;
+          BluetoothManager.instance.broadcastString('3: $userDevice');
+        });
+      }
+
+      // Create UI for monitors.
+      // TODO: Only display monitor types that are connected?
       var statsRow = Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
           color: Colors.black,
           child:
               SizedBox(
@@ -349,7 +363,21 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 child: Column(
                   children: [
                     SizedBox(
-                      height: 45,
+                      height: 35,
+                      child:
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            widget.settings.name,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
                       child:
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -382,7 +410,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       ),
                     ),
                     SizedBox(
-                      height: 35,
+                      height: 45,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -413,7 +441,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         ],
                       ),
                     ),
-
+                    const SizedBox(
+                      height: 5,
+                    ),
                   ],
                 ),
               )
@@ -424,7 +454,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       if (BluetoothManager.instance.connectedDevices.isNotEmpty) {
         statsRow.children.add(Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(75.0)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
             color: Colors.black,
             child:
             SizedBox(
@@ -432,7 +462,21 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               child: Column(
                 children: [
                   SizedBox(
-                    height: 45,
+                    height: 35,
+                    child:
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          peerName,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
                     child:
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -465,7 +509,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     ),
                   ),
                   SizedBox(
-                    height: 35,
+                    height: 45,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -496,7 +540,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       ],
                     ),
                   ),
-
+                  const SizedBox(
+                    height: 5,
+                  ),
                 ],
               ),
             )
