@@ -11,10 +11,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/partner_connect.dart';
+import 'package:hello_world/settings_model.dart';
+import 'package:hello_world/workout_database.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+import 'bluetooth_manager.dart';
 import 'monitor_connect.dart';
 import 'settings.dart';
 import 'past_workouts.dart';
@@ -58,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late OverlayEntry overlayEntry;
   late Offset dialogOffset;
   late PartnerConnect partnerConnectAdvertiser;
+  bool noSensors = false;
+  bool noPartners = false;
 
   // Create logger for entire app.
   static LoggerDevice device = LoggerDevice();
@@ -194,7 +199,66 @@ class _HomeScreenState extends State<HomeScreen> {
     _getUserLocation();
     _getDeviceInfo();
     logger.userDevice = device;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _showSetupDialog();
+    });
   }
+
+  Future<bool> _getProfileSettings() async {
+    ProfileSettings? previous = await WorkoutDatabase.instance.readSettings();
+    bool result = false;
+    setState(() {
+      if (previous != null) {
+        result = true;
+        settings.name = previous.name;
+        if (previous.age != null) {
+          settings.age = previous.age.toString();
+        }
+        if (previous.maxHR != null) {
+          settings.maxHR = previous.maxHR.toString();
+        }
+      }
+    });
+    return result;
+  }
+
+  void _showSetupDialog() async {
+    bool result = await _getProfileSettings();
+    if (!result) {
+      showDialog(
+          context: this.context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                backgroundColor: Colors.white,
+                title: const Text("Welcome to Collaborative Sport Mobile!"),
+                content: const Text("Go to the Settings Page to set up your profile."),
+                actionsAlignment: MainAxisAlignment.spaceEvenly,
+                actionsOverflowAlignment: OverflowBarAlignment.center,
+                actionsOverflowDirection: VerticalDirection.up,
+                actions: <Widget>[
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Cancel')
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        setState(() {
+                          Navigator.of(context).pop();
+                          _currentIndex = 2;
+                        });
+                      },
+                      child: const Text('Confirm')
+                  ),
+                ]
+            );
+          }
+      );
+    }
+  }
+
 
   @override
   void dispose() {
@@ -282,6 +346,118 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
+  _showExerciseTypeAlert() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Please select a workout type.'),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showExerciseTypeDialog();
+                  },
+                  child: const Text('Confirm'),
+              )
+            ],
+          );
+        }
+    );
+  }
+
+  _showMonitorAlert() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Not connected to a heart rate sensor.'),
+            content: const Text('This app works best when connected to a sensor, do you want to connect to a sensor?'),
+            actionsAlignment: MainAxisAlignment.spaceBetween,
+            actionsOverflowAlignment: OverflowBarAlignment.center,
+            actionsOverflowDirection: VerticalDirection.up,
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (BluetoothManager.instance.connectedDevices.isEmpty) {
+                    _showPartnerAlert();
+                  }
+                  else {
+                    LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                    logger.loggerEvents.events.add(loggedEvent);
+                    Navigator.of(context).push(_createRoute(
+                        flutterReactiveBle,
+                        connectedDevices,
+                        exerciseType,
+                        settings));
+                  }
+                },
+                child: const Text(
+                    'Continue without sensor',
+                  textAlign: TextAlign.end,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showConnectMonitorsDialog();
+                },
+                child: const Text('Connect to sensor'),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  _showPartnerAlert() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Not connected to a partner.'),
+            content: const Text('This app works best when connected to a partner, do you want to connect to a partner?'),
+            actionsAlignment: MainAxisAlignment.spaceBetween,
+            actionsOverflowAlignment: OverflowBarAlignment.center,
+            actionsOverflowDirection: VerticalDirection.up,
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                  logger.loggerEvents.events.add(loggedEvent);
+                  Navigator.of(context).push(_createRoute(
+                      flutterReactiveBle,
+                      connectedDevices,
+                      exerciseType,
+                      settings));
+                },
+                child: const Text('Continue without partner'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showConnectPartnersDialog();
+                },
+                child: const Text(
+                    'Connect to partner',
+                    textAlign: TextAlign.end
+                ),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  _isDialogShowing(BuildContext context) =>
+      ModalRoute.of(context)?.isCurrent != true;
 
   @override
   Widget build(BuildContext context) {
@@ -410,13 +586,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
-                      logger.loggerEvents.events.add(loggedEvent);
-                      Navigator.of(context).push(_createRoute(
-                          flutterReactiveBle,
-                          connectedDevices,
-                          exerciseType,
-                          settings));
+                      if (exerciseType.isEmpty) {
+                        _showExerciseTypeAlert();
+                      }
+                      else if (connectedDevices.isEmpty) {
+                        _showMonitorAlert();
+                      }
+                      else if (BluetoothManager.instance.connectedDevices.isEmpty) {
+                        _showPartnerAlert();
+                      }
+                      else {
+                        LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                        logger.loggerEvents.events.add(loggedEvent);
+                        Navigator.of(context).push(_createRoute(
+                            flutterReactiveBle,
+                            connectedDevices,
+                            exerciseType,
+                            settings));
+                      }
                     },
                     style: ButtonStyle(
                         backgroundColor:
