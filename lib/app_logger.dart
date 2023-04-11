@@ -204,7 +204,7 @@ class LoggerWorkout {
     if (loggerPower.data.isNotEmpty) {
       map['power'] = loggerPower.toMap();
     }
-    if (loggerPower.data.isNotEmpty) {
+    if (loggerLocation.data.isNotEmpty) {
       map['location'] = loggerLocation.toMap();
     }
 
