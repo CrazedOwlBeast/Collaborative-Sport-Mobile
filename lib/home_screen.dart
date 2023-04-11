@@ -455,8 +455,65 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  _isDialogShowing(BuildContext context) =>
-      ModalRoute.of(context)?.isCurrent != true;
+  _showDialogButtons(double screenHeight, double screenWidth) {
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+              screenWidth * 0.08, screenHeight * 0.63, 30, 0),
+          child: ElevatedButton(
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(
+                    const CircleBorder()),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.all(10)),
+                backgroundColor: MaterialStateProperty.all(
+                    Colors.orange), // <-- Button color
+              ),
+              onPressed: () {
+                showExerciseTypeDialog();
+              },
+              child: const Icon(Icons.pedal_bike, size: 30)),
+        ),
+        Padding(
+          /// Connect monitors
+          padding: EdgeInsets.fromLTRB((screenWidth - 65) / 2,
+              screenHeight * 0.63, 30, 0),
+          child: ElevatedButton(
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(
+                    const CircleBorder()),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.all(10)),
+                backgroundColor: MaterialStateProperty.all(
+                    Colors.orange), // <-- Button color
+              ),
+              onPressed: () async {
+                showConnectMonitorsDialog();
+              },
+              child: const Icon(Icons.bluetooth_connected,
+                  size: 30)),
+        ),
+        Padding(
+          /// Connect partners
+          padding: EdgeInsets.fromLTRB(
+              screenWidth * 0.78, screenHeight * 0.63, 30, 0),
+          child: ElevatedButton(
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(
+                    const CircleBorder()),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.all(10)),
+                backgroundColor: MaterialStateProperty.all(
+                    Colors.orange), // <-- Button color
+              ),
+              onPressed: () async {
+                showConnectPartnersDialog();
+              },
+              child: const Icon(Icons.people_alt_sharp)),
+        )
+      ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -482,14 +539,18 @@ class _HomeScreenState extends State<HomeScreen> {
               height: screenHeight,
               width: screenWidth,
               child: _initialPosition == null
-                  ? Center(
+                  ? Stack(
+                  children: [
+                    Center(
                       child: Text(
                         'loading map..',
                         style: TextStyle(
                             fontFamily: 'Avenir-Medium',
                             color: Colors.grey[400]),
                       ),
-                    )
+                    ),
+                    _showDialogButtons(screenHeight, screenWidth),
+                  ])
                   : Stack(
                       children: [
                         GoogleMap(
@@ -507,72 +568,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: _currentLocation,
                               child:
                                   Icon(Icons.location_on, color: Colors.black),
-                            )),
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                              screenWidth * 0.08, screenHeight * 0.63, 30, 0),
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.all(
-                                    const CircleBorder()),
-                                padding: MaterialStateProperty.all(
-                                    const EdgeInsets.all(10)),
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.orange), // <-- Button color
-                              ),
-                              onPressed: () {
-                                showExerciseTypeDialog();
-                                //_showDialog(context, "exerciseType", flutterReactiveBle);
-                                // Navigator.of(context).push(
-                                //     MaterialPageRoute(builder: (context) => const ExerciseType()));
-                              },
-                              child: const Icon(Icons.pedal_bike, size: 30)),
+                            )
                         ),
-                        Padding(
-                          /// Connect monitors
-                          padding: EdgeInsets.fromLTRB((screenWidth - 65) / 2,
-                              screenHeight * 0.63, 30, 0),
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.all(
-                                    const CircleBorder()),
-                                padding: MaterialStateProperty.all(
-                                    const EdgeInsets.all(10)),
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.orange), // <-- Button color
-                              ),
-                              onPressed: () async {
-                                showConnectMonitorsDialog();
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(builder: (context) => const MonitorConnect()),
-                                // );
-                              },
-                              child: const Icon(Icons.bluetooth_connected,
-                                  size: 30)),
-                        ),
-                        Padding(
-                          /// Connect partners
-                          padding: EdgeInsets.fromLTRB(
-                              screenWidth * 0.78, screenHeight * 0.63, 30, 0),
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.all(
-                                    const CircleBorder()),
-                                padding: MaterialStateProperty.all(
-                                    const EdgeInsets.all(10)),
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.orange), // <-- Button color
-                              ),
-                              onPressed: () async {
-                                showConnectPartnersDialog();
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(builder: (context) => const PartnerConnect()),
-                                // );
-                              },
-                              child: const Icon(Icons.people_alt_sharp)),
-                        ),
+                        _showDialogButtons(screenHeight, screenWidth),
                       ],
                     ),
             ),

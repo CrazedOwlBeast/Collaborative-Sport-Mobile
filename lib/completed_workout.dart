@@ -90,6 +90,8 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
 

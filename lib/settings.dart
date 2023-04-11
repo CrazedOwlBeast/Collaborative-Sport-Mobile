@@ -97,127 +97,123 @@ class _SettingsState extends State<Settings>
     super.build(context);
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
-    return PageView(children: [
-      Scaffold(
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
           backgroundColor: Colors.black,
-          body: Column(children: [
+          body: Column(
+              children: [
             Padding(padding: EdgeInsets.all(40)),
             Text("Edit Profile",
                 style: TextStyle(fontSize: 35, color: Colors.white)),
             Padding(padding: EdgeInsets.all(5)),
             Container(
-                height: screenHeight / 5,
+                height: screenHeight / 7,
                 width: screenWidth / 3,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(width: 2, color: Colors.white)),
-                child: Stack(
-                  alignment: Alignment.center,
+                child: Icon(Icons.person, color: Colors.white, size: 110),
+            ),
+            SizedBox(
+              height: screenHeight*.3,
+              width: screenWidth,
+              child:
+                Column(
                   children: [
-                    Icon(Icons.person, color: Colors.white, size: 130),
-                    Positioned(
-                        top: screenHeight / 7,
-                        left: screenWidth / 4,
+                    Align(
+                        alignment: Alignment.centerLeft,
                         child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(width: 2, color: Colors.white)),
-                            child:
-                                Icon(Icons.add, color: Colors.green, size: 25)))
+                          child: Text(
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            "Name",
+                            textAlign: TextAlign.left,
+                          ),
+                        )),
+                    Padding(padding: EdgeInsets.all(5)),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                            width: screenWidth / 1.5,
+                            child: TextField(
+                                onSubmitted: (value) {
+                                  widget.settings.name = getName();
+                                },
+                                controller: nameController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  fillColor: Colors.grey,
+                                  hintText: 'Enter name',
+                                )))),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          child: Text(
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            "Age",
+                            textAlign: TextAlign.left,
+                          ),
+                        )),
+                    Padding(padding: EdgeInsets.all(5)),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                            width: screenWidth / 4,
+                            child: TextField(
+                                onSubmitted: (value) {
+                                  hrController.text = calculateMaxHRString(value);
+                                  widget.settings.age = getAge();
+                                },
+                                controller: ageController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  fillColor: Colors.grey,
+                                  hintText: 'Enter age',
+                                )))),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          child: Text(
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            "Max Heart Rate",
+                            textAlign: TextAlign.left,
+                          ),
+                        )),
+                    Padding(padding: EdgeInsets.all(5)),
+                    Align(
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                            width: screenWidth / 5,
+                            child: TextField(
+                                onChanged: (value) {
+                                  widget.settings.maxHR = getMaxHR();
+                                },
+                                onSubmitted: (value) {
+                                  debugPrint(value);
+                                },
+                                controller: hrController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  fillColor: Colors.grey,
+                                  hintText: 'Enter max HR',
+                                )))),
+                    Padding(padding: EdgeInsets.all(10)),
+                    ElevatedButton(
+                      onPressed: _saveSettings,
+                      child: const Text('Save Settings'),
+                    )
                   ],
-                )),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  child: Text(
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                    "Name",
-                    textAlign: TextAlign.left,
-                  ),
-                )),
-            Padding(padding: EdgeInsets.all(5)),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                    width: screenWidth / 1.5,
-                    child: TextField(
-                        onSubmitted: (value) {
-                          widget.settings.name = getName();
-                        },
-                        controller: nameController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Colors.grey,
-                          hintText: 'Enter name',
-                        )))),
-            Padding(padding: EdgeInsets.all(10)),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  child: Text(
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                    "Age",
-                    textAlign: TextAlign.left,
-                  ),
-                )),
-            Padding(padding: EdgeInsets.all(5)),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                    width: screenWidth / 4,
-                    child: TextField(
-                        onSubmitted: (value) {
-                          hrController.text = calculateMaxHRString(value);
-                          widget.settings.age = getAge();
-                        },
-                        controller: ageController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Colors.grey,
-                          hintText: 'Enter age',
-                        )))),
-            Padding(padding: EdgeInsets.all(10)),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  child: Text(
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                    "Max Heart Rate",
-                    textAlign: TextAlign.left,
-                  ),
-                )),
-            Padding(padding: EdgeInsets.all(5)),
-            Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                    width: screenWidth / 3,
-                    child: TextField(
-                        onChanged: (value) {
-                          widget.settings.maxHR = getMaxHR();
-                        },
-                        onSubmitted: (value) {
-                          debugPrint(value);
-                        },
-                        controller: hrController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Colors.grey,
-                          hintText: 'Enter max HR',
-                        )))),
-            Padding(padding: EdgeInsets.all(10)),
-            ElevatedButton(
-                onPressed: _saveSettings,
-                child: const Text('Save Settings'),
+                )
             )
           ])
       )
-    ]);
+    );
   }
 }
