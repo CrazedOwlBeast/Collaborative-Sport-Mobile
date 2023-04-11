@@ -279,12 +279,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               width: 5,
               points: _points,
             ));
-            distance = Geolocator.distanceBetween(
-              _initialPosition!.latitude,
-              _initialPosition!.longitude,
-              _currentPosition!.latitude,
-              _currentPosition!.longitude,
-            );
+            // distance = Geolocator.distanceBetween(
+            //   _initialPosition!.latitude,
+            //   _initialPosition!.longitude,
+            //   _currentPosition!.latitude,
+            //   _currentPosition!.longitude,
+            // );
           });
         }
       });
@@ -294,13 +294,25 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       setState(() {
         _currentPosition = newPosition;
         if(_initialPosition != null) {
-          final distanceInMeters = Geolocator.distanceBetween(
-              _initialPosition!.latitude,
-              _initialPosition!.longitude,
-              _currentPosition!.latitude,
-              _currentPosition!.longitude);
-          distance += distanceInMeters;
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
+          // for (int i = 0; i < _points.length - 1; i++) {
+          //   LatLng location1 = _points[i];
+          //   LatLng location2 = _points[i + 1];
+          //   double distanceInMeters = Geolocator.distanceBetween(
+          //     location1.latitude,
+          //     location1.longitude,
+          //     location2.latitude,
+          //     location2.longitude,
+          //   );
+          //   distance += distanceInMeters;
+          // }
+          // final distanceInMeters = Geolocator.distanceBetween(
+          //     _initialPosition!.latitude,
+          //     _initialPosition!.longitude,
+          //     _currentPosition!.latitude,
+          //     _currentPosition!.longitude);
+          // distance += distanceInMeters;
+          // _points.add(LatLng(newPosition.latitude, newPosition.longitude));
 
           // Log the distance every meter.
           // TODO: Determine logging interval for distance.
@@ -321,6 +333,22 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     _onMapCreated(GoogleMapController controller) {
       controller = controller;
+    }
+
+    double _calculateTotalDistance(){
+      double totalDistance = 0;
+      for (int i = 0; i < _points.length - 1; i++) {
+        LatLng location1 = _points[i];
+        LatLng location2 = _points[i + 1];
+        double distanceInMeters = Geolocator.distanceBetween(
+        location1.latitude,
+        location1.longitude,
+        location2.latitude,
+        location2.longitude,
+        );
+        totalDistance += distanceInMeters;
+      }
+      return totalDistance;
     }
 
     @override
@@ -617,7 +645,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
                               },
                               style: ButtonStyle(
-                                padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(40, 20, 0, 0)),
+                                padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(20, 20, 0, 0)),
                                 backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                 overlayColor: MaterialStateProperty.all(Colors.transparent),
                                 shape: MaterialStateProperty.all(const CircleBorder()),
@@ -644,7 +672,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 0, 10)),
+                                  padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 10, 0)),
                                   backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                   overlayColor: MaterialStateProperty.all(Colors.transparent),
                                   shape: MaterialStateProperty.all(CircleBorder()),
@@ -656,7 +684,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   RichText(
                                     textAlign: TextAlign.center,
                                     text: TextSpan(
-                                      text: '${(distance > 15 ? (distance / 1609).toStringAsFixed(2) : "-")}',
+                                      text: (_calculateTotalDistance() > 15 ? (_calculateTotalDistance() / 1609).toStringAsFixed(2) : "-"),
                                       style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
@@ -669,7 +697,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   RichText(
                                     textAlign: TextAlign.center,
                                     text: TextSpan(
-                                        text: '${(distance > 15 ? (distance / 1000).toStringAsFixed(2) : "-")}',
+                                        text: (_calculateTotalDistance() > 15 ? (_calculateTotalDistance() / 1000).toStringAsFixed(2) : "-"),
                                         style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                         children: const [
                                           TextSpan(
@@ -688,7 +716,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                               });
                             },
                             style: ButtonStyle(
-                              padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
+                              padding: MaterialStateProperty.all(EdgeInsets.fromLTRB(10, 20, 10, 10)),
                               backgroundColor: MaterialStateProperty.all(Colors.black) ,
                               overlayColor: MaterialStateProperty.all(Colors.transparent),
                               shape: MaterialStateProperty.all(const CircleBorder()),
@@ -700,7 +728,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                               RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
-                                      text: '${(distance > 15 ? (((duration.inSeconds / distance) * 1609) / 60).toStringAsFixed(2) : "-")}',
+                                      text: (_calculateTotalDistance() > 15 ? (((duration.inSeconds / _calculateTotalDistance()) * 1609) / 60).toStringAsFixed(2) : "-"),
                                       style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(
@@ -713,7 +741,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                               RichText(
                                 textAlign: TextAlign.center,
                                   text: TextSpan(
-                                      text: '${(distance > 15 ? (((duration.inSeconds / distance) * 1000) / 60).toStringAsFixed(2) : "-")}',
+                                      text: (_calculateTotalDistance() > 15 ? (((duration.inSeconds / _calculateTotalDistance()) * 1000) / 60).toStringAsFixed(2) : "-"),
                                       style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
                                       children: const [
                                         TextSpan(

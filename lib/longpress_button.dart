@@ -76,8 +76,8 @@ class _LongPressButtonState extends State<LongPressButton> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: 130,
-            height: 130,
+            width: 110,
+            height: 110,
             child: CircularProgressIndicator(
               strokeWidth: 6.0,
               color: Colors.black,
@@ -85,7 +85,7 @@ class _LongPressButtonState extends State<LongPressButton> {
             ),
           ),
           CircleAvatar(
-            radius: 60,
+            radius: 50,
             backgroundColor: Colors.orange,
             child: Icon(
               Icons.stop,
