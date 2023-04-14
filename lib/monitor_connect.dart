@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hello_world/app_logger.dart';
+import 'ble_manager.dart';
 import 'ble_sensor_device.dart';
 import 'package:collection/collection.dart';
 
 class MonitorConnect extends StatefulWidget {
-  final FlutterReactiveBle flutterReactiveBle;
-  final List<BleSensorDevice> connectedDevices;
-  final Function(List<BleSensorDevice>) callback;
   final LayerLink link;
   final OverlayEntry overlayEntry;
   final Offset offset;
@@ -20,9 +18,6 @@ class MonitorConnect extends StatefulWidget {
 
   const MonitorConnect(
       {Key? key,
-      required this.flutterReactiveBle,
-      required this.callback,
-      required this.connectedDevices,
       required this.link,
       required this.offset,
       required this.dialogWidth,
@@ -42,16 +37,19 @@ class _MonitorConnectState extends State<MonitorConnect> {
   final Uuid CYCLING_POWER_CHARACTERISTIC = Uuid.parse('2a63');
 
   late final flutterReactiveBle;
-  List<DiscoveredDevice> devices = <DiscoveredDevice>[];
+  late List<DiscoveredDevice> devices;
   StreamSubscription? scanSubscription;
-  late StreamSubscription<ConnectionStateUpdate> _connection;
+  StreamSubscription<ConnectionStateUpdate>? _connection;
   //List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
   Color _colorTile = Colors.white;
+  Map<DiscoveredDevice, String> deviceMap = {};
 
   @override
   void initState() {
     super.initState();
-    flutterReactiveBle = widget.flutterReactiveBle;
+    devices = <DiscoveredDevice>[];
+    flutterReactiveBle = BleManager.flutterReactiveBle;
+    int counter = 0;
     //scan for sensors
     debugPrint('Begin scan');
     if (flutterReactiveBle.status == BleStatus.ready) {
@@ -64,11 +62,30 @@ class _MonitorConnectState extends State<MonitorConnect> {
         final knownDeviceIndex = devices.indexWhere((d) => d.id == device.id);
         if (knownDeviceIndex >= 0) {
           devices[knownDeviceIndex] = device;
+          if (BleManager.instance.connectedSensors.indexWhere((sensor) => device.id == sensor.deviceId)>-1) {
+            //map.putIfAbsent(device, () => DeviceConnectionState.connected);
+            deviceMap[device] = "Connected";
+          }
+          else {
+            //map.putIfAbsent(device, () => DeviceConnectionState.disconnected);
+            deviceMap[device] = "Disconnected";
+          }
         } else {
-          setState(() {
-            devices.add(device);
-          });
+          devices.add(device);
           debugPrint('Device found.');
+          if (BleManager.instance.connectedSensors.indexWhere((sensor) => device.id == sensor.deviceId)>-1) {
+            //map.putIfAbsent(device, () => DeviceConnectionState.connected);
+            deviceMap[device] = "Connected";
+          }
+          else {
+            //map.putIfAbsent(device, () => DeviceConnectionState.disconnected);
+            deviceMap[device] = "Disconnected";
+          }
+        }
+        counter++;
+        if (counter > 5) {
+          setState(() {});
+          counter = 0;
         }
       }, onError: (Object e) {
         debugPrint('Error scanning for heart rate sensor: $e');
@@ -76,22 +93,27 @@ class _MonitorConnectState extends State<MonitorConnect> {
     } else {
       debugPrint('Error: BLE status not ready');
     }
-    for (BleSensorDevice d in widget.connectedDevices) {
+    for (BleSensorDevice d in BleManager.instance.connectedSensors) {
       debugPrint("Device id: ${d.deviceId}");
     }
   }
 
   bool isConnected(String id) {
-    bool result = widget.connectedDevices
-            .firstWhereOrNull((element) => element.deviceId == id) !=
-        null;
-    if (result) {
-      debugPrint("True somehow");
-    } else {
-      debugPrint("False");
-    }
+    bool result = BleManager.instance.connectedSensors
+            .firstWhereOrNull((element) => element.deviceId == id) != null;
     return result;
   }
+
+  String _getStateName(DiscoveredDevice device) {
+    String? result = deviceMap[device];
+    if (result != null) {
+      return result;
+    }
+    else {
+      return "Unknown";
+    }
+  }
+
 
   // TODO: ListView is scrolling into the Positioned elements.
   @override
@@ -125,7 +147,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                           height: 1.7,
                                           color: Colors.white)),
                                   subtitle: Text(
-                                      "${device.id}\nRSSI: ${device.rssi}",
+                                      "${device.id}\nRSSI: ${device.rssi}\n${_getStateName(device)}",
                                       style: GoogleFonts.openSans(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
@@ -160,6 +182,10 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                       ).listen((update) {
                                         debugPrint(
                                             'Connection state update: ${update.connectionState}');
+                                        setState(() {
+                                          //map.update(device, (value) => update.connectionState);
+                                          deviceMap[device] = "Connecting";
+                                        });
                                       });
 
                                       if (device.serviceUuids.any((service) =>
@@ -176,7 +202,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                           characteristicId:
                                               HEART_RATE_CHARACTERISTIC,
                                         );
-                                        widget.connectedDevices
+                                        BleManager.instance.connectedSensors
                                             .add(connectedSensor);
 
                                         LoggerEvent loggerEvent =
@@ -202,7 +228,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                           characteristicId:
                                               CYCLING_POWER_CHARACTERISTIC,
                                         );
-                                        widget.connectedDevices
+                                        BleManager.instance.connectedSensors
                                             .add(connectedSensor);
 
                                         LoggerEvent loggerEvent =
@@ -214,8 +240,8 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                             .add(loggerEvent);
                                       }
                                     } else {
-                                      _connection.cancel();
-                                      widget.connectedDevices.removeWhere(
+                                      _connection?.cancel();
+                                      BleManager.instance.connectedSensors.removeWhere(
                                           (element) =>
                                               element.deviceId == device.id);
 
@@ -225,13 +251,15 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                       loggerEvent.processEvent();
                                       widget.logger.loggerEvents.events
                                           .add(loggerEvent);
+                                      //map.update(device, (value) => DeviceConnectionState.disconnected);
+                                      deviceMap[device] = "Disconnecting";
                                     }
                                     setState(() {
                                       _colorTile = _colorTile == Colors.white
                                           ? Colors.green
                                           : Colors.white;
                                     });
-                                    widget.callback(widget.connectedDevices);
+                                    //widget.callback(BleManager.instance.connectedSensors);
                                   },
                                 ),
                               )

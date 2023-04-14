@@ -9,6 +9,7 @@ import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/ble_manager.dart';
 import 'package:hello_world/longpress_button.dart';
 import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
@@ -21,14 +22,11 @@ import 'package:hello_world/settings.dart';
 import 'home_screen.dart';
 
 class ActiveWorkout extends StatefulWidget {
-  final FlutterReactiveBle flutterReactiveBle;
-  final List<BleSensorDevice>? deviceList;
   final AppLogger logger;
   final String exerciseType;
   final SettingsStorage settings;
+
   const ActiveWorkout({super.key,
-    required this.flutterReactiveBle,
-    required this.deviceList,
     required this.logger,
     required this.exerciseType,
     required this.settings
@@ -57,6 +55,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool stopWorkout = false;
     late StreamSubscription peerSubscription;
     StreamSubscription? stateSubsciption;
+    late List<BleSensorDevice> deviceList;
 
     bool peerNameConfirmed = false;
     bool peerDeviceConfirmed = false;
@@ -82,7 +81,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       super.initState();
       widget.logger.startWorkout();
       widget.logger.workout?.workoutType = widget.exerciseType;
-
+      deviceList = BleManager.instance.connectedSensors;
       // _getUserLocation();
       _getCurrentLocation();
       _positionStreamSubscription = Geolocator.getPositionStream(
@@ -90,10 +89,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           .listen(_onPositionUpdate);
       startTimer();
       debugPrint('Exercise Type = ${widget.exerciseType}');
-      if (widget.deviceList != null) {
-        for (BleSensorDevice device in widget.deviceList!) {
+      if (deviceList != null) {
+        for (BleSensorDevice device in deviceList!) {
           if (device.type == 'HR') {
-            subscribeStreamHR = widget.flutterReactiveBle.subscribeToCharacteristic(
+            subscribeStreamHR = BleManager.flutterReactiveBle.subscribeToCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: device.characteristicId,
                     serviceId: device.serviceId,
@@ -110,7 +109,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             });
           }
           else if (device.type == 'POWER') {
-            subscribeStreamPower = widget.flutterReactiveBle.subscribeToCharacteristic(
+            subscribeStreamPower = BleManager.flutterReactiveBle.subscribeToCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: device.characteristicId,
                     serviceId: device.serviceId,

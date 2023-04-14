@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
+import 'ble_manager.dart';
 import 'bluetooth_manager.dart';
 import 'monitor_connect.dart';
 import 'settings.dart';
@@ -119,11 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 0.0,
             left: 0.0,
             child: MonitorConnect(
-                flutterReactiveBle: flutterReactiveBle,
-                callback: (deviceList) => setState(() {
-                      connectedDevices = deviceList;
-                    }),
-                connectedDevices: connectedDevices,
                 offset: dialogOffset,
                 link: layerLink,
                 dialogWidth: dialogWidth,
@@ -183,14 +179,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // BleSensorDevice? device;
-  List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
+  //List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
   String exerciseType = "";
 
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
 
   // Obtain FlutterReactiveBle instance for entire app.
-  final flutterReactiveBle = FlutterReactiveBle();
+  //final flutterReactiveBle = FlutterReactiveBle();
 
   @override
   void initState() {
@@ -277,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
       device.deviceId =
-          iosInfo.utsname.machine; // TODO: Not sure how to get UUID for iOS
+          iosInfo.identifierForVendor;
     }
   }
 
@@ -324,27 +320,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void setConnectedDevice(List<BleSensorDevice> deviceList) {
-    this.connectedDevices = deviceList;
-  }
-
   void setExerciseType(String type) {
     this.exerciseType = type;
   }
 
-  // Function to show dialog when action buttons are pressed.
-  _showDialog(
-      BuildContext context, String buttonType, FlutterReactiveBle bluetooth) {
-    continueCallBack() => {Navigator.of(context).pop()};
-    PopupDialog alert = PopupDialog(continueCallBack, buttonType, bluetooth,
-        setConnectedDevice, connectedDevices);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
 
   _showExerciseTypeAlert() {
     showDialog(
@@ -390,8 +369,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
                     logger.loggerEvents.events.add(loggedEvent);
                     Navigator.of(context).push(_createRoute(
-                        flutterReactiveBle,
-                        connectedDevices,
                         exerciseType,
                         settings));
                   }
@@ -432,8 +409,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
                   logger.loggerEvents.events.add(loggedEvent);
                   Navigator.of(context).push(_createRoute(
-                      flutterReactiveBle,
-                      connectedDevices,
                       exerciseType,
                       settings));
                 },
@@ -590,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (exerciseType.isEmpty) {
                         _showExerciseTypeAlert();
                       }
-                      else if (connectedDevices.isEmpty) {
+                      else if (BleManager.instance.connectedSensors.isEmpty) {
                         _showMonitorAlert();
                       }
                       else if (BluetoothManager.instance.connectedDevices.isEmpty) {
@@ -600,8 +575,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
                         logger.loggerEvents.events.add(loggedEvent);
                         Navigator.of(context).push(_createRoute(
-                            flutterReactiveBle,
-                            connectedDevices,
                             exerciseType,
                             settings));
                       }
@@ -713,8 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   loggedEvent.processEvent();
                   logger.loggerEvents.events.add(loggedEvent);
 
-                  Navigator.of(context).push(_createRoute(flutterReactiveBle,
-                      connectedDevices, exerciseType, settings));
+                  Navigator.of(context).push(_createRoute(exerciseType, settings));
                 },
                 style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.green),
@@ -792,14 +764,10 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 Route _createRoute(
-    FlutterReactiveBle ble,
-    List<BleSensorDevice>? connectedDevices,
     String type,
     SettingsStorage settingsStorage) {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => ActiveWorkout(
-        flutterReactiveBle: ble,
-        deviceList: connectedDevices,
         logger: _HomeScreenState.logger,
         exerciseType: type,
         settings: settingsStorage),

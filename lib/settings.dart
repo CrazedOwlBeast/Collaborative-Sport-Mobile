@@ -116,7 +116,7 @@ class _SettingsState extends State<Settings>
                 child: Icon(Icons.person, color: Colors.white, size: 110),
             ),
             SizedBox(
-              height: screenHeight*.3,
+              height: screenHeight,
               width: screenWidth,
               child:
                 Column(
@@ -188,7 +188,7 @@ class _SettingsState extends State<Settings>
                     Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
-                            width: screenWidth / 5,
+                            width: screenWidth / 4,
                             child: TextField(
                                 onChanged: (value) {
                                   widget.settings.maxHR = getMaxHR();
