@@ -36,7 +36,8 @@ class WorkoutDatabase {
     CREATE TABLE $tableWorkouts (
     ${WorkoutFields.id} $idType,
     ${WorkoutFields.name} $textType,
-    ${WorkoutFields.jsonString} $textType
+    ${WorkoutFields.jsonString} $textType,
+    ${WorkoutFields.polylines} $textType
     )
     ''');
 

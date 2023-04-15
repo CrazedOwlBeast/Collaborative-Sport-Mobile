@@ -811,7 +811,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 ),
                 Visibility(
                     visible: stopWorkout,
-                    child: LongPressButton(logger: widget.logger, exerciseType: widget.exerciseType)
+                    child: LongPressButton(logger: widget.logger, exerciseType: widget.exerciseType, polylines: _polyLines,)
                 )
               ],
             )

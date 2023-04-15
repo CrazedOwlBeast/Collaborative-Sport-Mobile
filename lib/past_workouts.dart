@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hello_world/workout_database.dart';
 import 'package:hello_world/workout_model.dart';
+import 'package:hello_world/workout_summary.dart';
 import 'package:intl/intl.dart';
 
 
@@ -44,9 +45,9 @@ class _PastWorkoutsState extends State<PastWorkouts> {
       Map<String, dynamic> log = jsonDecode(workouts[index].jsonString);
       Map<String, dynamic> workout = log['workout'];
       //DateTime? date = DateTime.tryParse(workout['start_timestamp']);
-      int? ms = int.tryParse(workout['start_timestamp']);
-      if (ms != null) {
-        DateTime date = DateTime.fromMillisecondsSinceEpoch((ms*1000));
+      int? seconds = int.tryParse(workout['start_timestamp']);
+      if (seconds != null) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds*1000));
         String time = DateFormat.jm().format(date);
         return "$time ${date.month}/${date.day}/${date.year}";
       }
@@ -90,6 +91,10 @@ class _PastWorkoutsState extends State<PastWorkouts> {
                           return Container(
                             margin: const EdgeInsets.all(5.0),
                             child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => WorkoutSummary(workout: workouts[index],)));
+                              },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

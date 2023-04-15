@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'app_logger.dart';
 import 'completed_workout.dart';
@@ -10,8 +11,9 @@ import 'completed_workout.dart';
 class LongPressButton extends StatefulWidget {
   final AppLogger logger;
   final String exerciseType;
+  final Set<Polyline> polylines;
 
-  const LongPressButton({super.key, required this.logger, required this.exerciseType});
+  const LongPressButton({super.key, required this.logger, required this.exerciseType, required this.polylines});
 
   @override
   _LongPressButtonState createState() => _LongPressButtonState();
@@ -46,7 +48,7 @@ class _LongPressButtonState extends State<LongPressButton> {
           String jsonString = jsonEncode(widget.logger.toSave());
 
           Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => CompletedWorkout(jsonString: jsonString,)));
+              MaterialPageRoute(builder: (context) => CompletedWorkout(jsonString: jsonString, polylines: widget.polylines,)));
         }
       });
     });
