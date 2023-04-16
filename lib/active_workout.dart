@@ -39,6 +39,7 @@ class ActiveWorkout extends StatefulWidget {
 class _ActiveWorkoutState extends State<ActiveWorkout> {
     bool _showProgressIndicator = false;
     bool _changeDistance = false;
+    bool _displayPercent = false;
     int lastLoggedDistance = 0;
     var rng = Random();
     GoogleMapController? controller;
@@ -49,7 +50,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     int? peerHeartRate = 0;
     int? power = 0;
     int? peerPower = 0;
-    int? targetHeartRate = 168;
     double distance = 0.0;
     bool pauseWorkout = true;
     bool stopWorkout = false;
@@ -278,12 +278,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               width: 5,
               points: _points,
             ));
-            // distance = Geolocator.distanceBetween(
-            //   _initialPosition!.latitude,
-            //   _initialPosition!.longitude,
-            //   _currentPosition!.latitude,
-            //   _currentPosition!.longitude,
-            // );
           });
         }
       });
@@ -294,24 +288,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         _currentPosition = newPosition;
         if(_initialPosition != null) {
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
-          // for (int i = 0; i < _points.length - 1; i++) {
-          //   LatLng location1 = _points[i];
-          //   LatLng location2 = _points[i + 1];
-          //   double distanceInMeters = Geolocator.distanceBetween(
-          //     location1.latitude,
-          //     location1.longitude,
-          //     location2.latitude,
-          //     location2.longitude,
-          //   );
-          //   distance += distanceInMeters;
-          // }
-          // final distanceInMeters = Geolocator.distanceBetween(
-          //     _initialPosition!.latitude,
-          //     _initialPosition!.longitude,
-          //     _currentPosition!.latitude,
-          //     _currentPosition!.longitude);
-          // distance += distanceInMeters;
-          // _points.add(LatLng(newPosition.latitude, newPosition.longitude));
 
           // Log the distance every meter.
           // TODO: Determine logging interval for distance.
@@ -352,7 +328,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
     @override
     Widget build(BuildContext context) {
-      int heartRatePercent = ((heartrate! / targetHeartRate!) * 100).round();
       String twoDigits(int n) => n.toString().padLeft(2, '0');
       String? hours,minutes,seconds;
       hours = twoDigits(duration.inHours.remainder(60));
@@ -361,6 +336,22 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       var screenWidth = MediaQuery.of(context).size.width;
       var screenHeight = MediaQuery.of(context).size.height;
+
+      final double pace = _changeDistance
+          ? ((duration.inSeconds / _calculateTotalDistance()) * 1000 / 60)
+          : ((duration.inSeconds / _calculateTotalDistance()) * 1609 / 60);
+      final String paceText = _changeDistance ? 'Pace\n(min/km)' : 'Pace\n(min/mi)';
+
+      final double distance = _changeDistance
+          ? (_calculateTotalDistance() / 1000)
+          : (_calculateTotalDistance() / 1609);
+      final String distanceText = _changeDistance ? 'Distance\n(km)' : 'Distance\n(mi)';
+
+      final int maxHR = int.parse(widget.settings.maxHR);
+      final int? displayHRPercent = _displayPercent
+          ? ((heartrate! / maxHR) * 100).round()
+          : heartrate;
+      final String heartRateText = _displayPercent ? '%' : 'bpm';
 
       // Broadcast user info to partner.
       if (!peerNameConfirmed) {
@@ -413,22 +404,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             width: screenWidth * .1,
                             child: const Icon(Icons.heart_broken, size: 30, color: Colors.white60,),
                           ),
-                          SizedBox(
-                            width: screenWidth * .15,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                            child: Text(
-                              "$heartrate",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                            ),)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _displayPercent = !_displayPercent;
+                              });
+                            },
+                            child :SizedBox(
+                              width: screenWidth * .15,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                              child: Text(
+                                "$displayHRPercent",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                              ),)
+                            )
                           ),
                           SizedBox(
                               width: screenWidth * .1,
-                              child: const FittedBox(
+                              child: FittedBox(
                                 fit: BoxFit.scaleDown,
                               child: Text(
-                                "bpm",
+                                heartRateText,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 15, color: Colors.white60, fontWeight: FontWeight.w500),
                               ))
@@ -679,33 +677,20 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                  child: SizedBox(
                                    height: 100,
                                   width: screenWidth/4,
-                                child: _changeDistance ?
-                                  RichText(
+                                child:
+                                RichText(
                                     textAlign: TextAlign.center,
                                     text: TextSpan(
-                                      text: (_calculateTotalDistance() > 15 ? (_calculateTotalDistance() / 1609).toStringAsFixed(2) : "-"),
-                                      style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                      children: const [
-                                        TextSpan(
-                                          text: '\nDistance\n(mi)',
-                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                        )
-                                      ]
-                                    )
-                                  )  :
-                                  RichText(
-                                    textAlign: TextAlign.center,
-                                    text: TextSpan(
-                                        text: (_calculateTotalDistance() > 15 ? (_calculateTotalDistance() / 1000).toStringAsFixed(2) : "-"),
-                                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                        children: const [
+                                        text: _calculateTotalDistance() < 15 ? "-" : distance.toStringAsFixed(2),
+                                        style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
+                                        children: [
                                           TextSpan(
-                                            text: '\nDistance\n(km)',
+                                            text: '\n$distanceText',
                                             style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
                                           )
                                         ]
                                     )
-                                  )
+                                )
                             )
                         ),
                         ElevatedButton(
@@ -723,28 +708,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             child: SizedBox(
                                 height: 100,
                                 width: screenWidth/4,
-                            child: _changeDistance ?
+                            child:
                               RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
-                                      text: (_calculateTotalDistance() > 15 ? (((duration.inSeconds / _calculateTotalDistance()) * 1609) / 60).toStringAsFixed(2) : "-"),
+                                      text: _calculateTotalDistance() < 15 ? "-" : pace.toStringAsFixed(2),
                                       style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                      children: const [
+                                      children: [
                                         TextSpan(
-                                          text: '\nPace\n(min/mi)',
-                                          style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                        )
-                                      ]
-                                  )
-                              )  :
-                              RichText(
-                                textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                      text: (_calculateTotalDistance() > 15 ? (((duration.inSeconds / _calculateTotalDistance()) * 1000) / 60).toStringAsFixed(2) : "-"),
-                                      style: const TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.w600),
-                                      children: const [
-                                        TextSpan(
-                                          text: '\nPace\n(min/km)',
+                                          text: '\n$paceText',
                                           style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
                                         )
                                       ]

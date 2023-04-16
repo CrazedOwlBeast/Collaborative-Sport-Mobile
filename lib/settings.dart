@@ -116,7 +116,7 @@ class _SettingsState extends State<Settings>
                 child: Icon(Icons.person, color: Colors.white, size: 110),
             ),
             SizedBox(
-              height: screenHeight,
+              height: screenHeight * 0.5,
               width: screenWidth,
               child:
                 Column(
