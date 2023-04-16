@@ -10,6 +10,7 @@ class ExerciseType extends StatefulWidget {
   final double dialogWidth;
   final double dialogHeight;
   final AppLogger logger;
+  final String exerciseType;
   final Function(String) callBack;
 
   const ExerciseType({Key? key,
@@ -20,6 +21,7 @@ class ExerciseType extends StatefulWidget {
     required this.overlayEntry,
     required this.logger,
     required this.callBack,
+    required this.exerciseType,
   }) : super(key: key);
 
   @override
@@ -30,6 +32,12 @@ class _ExerciseTypeState extends State<ExerciseType> {
   Color _walkColor = Color.fromRGBO(90, 90, 90, 0.5);
   Color _runColor = Color.fromRGBO(90, 90, 90, 0.5);
   Color _cycleColor = Color.fromRGBO(90, 90, 90, 0.5);
+
+  @override
+  void initState() {
+    super.initState();
+    _setColor(widget.exerciseType);
+  }
 
   void _setColor(String type) {
     setState(() {

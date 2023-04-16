@@ -74,7 +74,7 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
       int hours = seconds~/360;
       int minutes = ((seconds-(hours*360))~/60);
       seconds = seconds - (minutes*60) - (hours*360);
-      return "$hours:$minutes:$seconds";
+      return "Duration: ${hours}h:${minutes}m:${seconds}s";
     }
     else {
       return "Duration unavailable";
@@ -83,7 +83,7 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
 
   String _getDistance() {
     if (workoutJson['distance'] != null) {
-      return "${workoutJson['distance']['data'].last['value']} meters";
+      return "Distance: ${workoutJson['distance']['data'].last['value']} meters";
     }
     else {
       return "0.0 meters";
@@ -91,12 +91,16 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
   }
 
   String _getPartners() {
-    if (workoutJson['partners'] != null) {
+    if (workoutJson['partners'].isEmpty) {
       return "Partners: ";
     }
     else {
       return "No partners";
     }
+  }
+
+  String _getWorkoutType() {
+    return "Workout type: ${workoutJson['workout_type']}";
   }
 
 
@@ -130,12 +134,15 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
                   color: Colors.black,
                   child: Column(
                       children: [
-                        Text(
-                            widget.workout.name,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 45
-                            )
+                        FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(
+                              widget.workout.name,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 40
+                              )
+                          ),
                         ),
                         SizedBox(
                           width: screenWidth*.8,
@@ -154,6 +161,13 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
                         ),
                         Text(
                           _getStartTime(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15
+                            )
+                        ),
+                        Text(
+                            _getWorkoutType(),
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15
@@ -180,11 +194,14 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
                                 fontSize: 15
                             )
                         ),
-                        BackButton(
+                        FilledButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          color: Colors.white,
+                          style: FilledButton.styleFrom(backgroundColor: Colors.white38),
+                          child: const Text(
+                            'Back',
+                          ),
                         )
                       ]
                   )

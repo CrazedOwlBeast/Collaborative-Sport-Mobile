@@ -63,7 +63,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
       int seconds = end - start;
       int hours = seconds~/360;
       int minutes = seconds~/60;
-      return "$hours:$minutes:$seconds";
+      return "Duration: ${hours}h:${minutes}m:${seconds}s";
     }
     else {
       return "Duration unavailable";
@@ -72,20 +72,24 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
 
   String _getDistance() {
     if (workoutJson['distance'] != null) {
-      return "${workoutJson['distance']['data'].last['value']} meters";
+      return "Distance: ${workoutJson['distance']['data'].last['value']} meters";
     }
     else {
-      return "0.0 meters";
+      return "Distance: 0.0 meters";
     }
   }
 
   String _getPartners() {
-    if (workoutJson['partners'] != null) {
+    if (workoutJson['partners'].isEmpty) {
       return "Partners: ";
     }
     else {
       return "No partners";
     }
+  }
+
+  String _getWorkoutType() {
+    return "Workout type: ${workoutJson['workout_type']}";
   }
 
   _getInitialLocation() async {
@@ -136,6 +140,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
                             child: const Text('Cancel'),
                           ),
                           ElevatedButton(
@@ -181,12 +186,15 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                   color: Colors.black,
                   child: Column(
                       children: [
-                        const Text(
-                            "Workout Complete!",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 45
-                            )
+                        const FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(
+                              "Workout Complete!",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 45
+                              )
+                          ),
                         ),
                         SizedBox(
                           width: screenWidth*.8,
@@ -206,6 +214,13 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                         ),
                         Text(
                             _getStartTime(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15
+                            )
+                        ),
+                        Text(
+                            _getWorkoutType(),
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15
@@ -242,6 +257,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                                     MaterialPageRoute(builder: (context) => const HomeScreen()));
                                   });
                                 },
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.white38),
                                 child: const Text('Discard'),
                             ),
                             ElevatedButton(

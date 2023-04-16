@@ -53,7 +53,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  // TODO: Restore settings from file if it exists.
   SettingsStorage settings = SettingsStorage();
 
   late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
@@ -94,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
               overlayEntry: overlayEntry,
               logger: logger,
               callBack: setExerciseType,
+              exerciseType: exerciseType,
             ),
           )
         ]);
@@ -178,15 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
     overlayEntry.remove();
   }
 
-  // BleSensorDevice? device;
-  //List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
-  String exerciseType = "";
+  String exerciseType = "Walking";
 
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
-
-  // Obtain FlutterReactiveBle instance for entire app.
-  //final flutterReactiveBle = FlutterReactiveBle();
 
   @override
   void initState() {
@@ -321,7 +316,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void setExerciseType(String type) {
-    this.exerciseType = type;
+    setState(() {
+      this.exerciseType = type;
+    });
   }
 
 
@@ -448,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 showExerciseTypeDialog();
               },
-              child: const Icon(Icons.pedal_bike, size: 30)),
+              child: Icon(_getIcon(), size: 30)),
         ),
         Padding(
           /// Connect monitors
@@ -488,6 +485,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.people_alt_sharp)),
         )
       ]);
+  }
+
+  IconData _getIcon() {
+    if (exerciseType == 'Running') {
+      return Icons.directions_run;
+    }
+    else if (exerciseType == 'Cycling') {
+      return Icons.directions_bike;
+    }
+    else {
+      return Icons.directions_walk;
+    }
   }
 
   @override
