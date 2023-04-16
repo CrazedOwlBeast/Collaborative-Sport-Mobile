@@ -194,15 +194,16 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
                                 fontSize: 15
                             )
                         ),
-                        FilledButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          style: FilledButton.styleFrom(backgroundColor: Colors.white38),
-                          child: const Text(
-                            'Back',
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(0, screenHeight*.2, 0, 0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white38),
+                                child: const Text('Back'),
                           ),
-                        )
+                        ),
                       ]
                   )
               ),

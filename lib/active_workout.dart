@@ -396,7 +396,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
-                            widget.settings.name,
+                            userName,
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, ),
                           ),

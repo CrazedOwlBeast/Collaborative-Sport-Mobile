@@ -62,7 +62,8 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
     if (start != null && end != null) {
       int seconds = end - start;
       int hours = seconds~/360;
-      int minutes = seconds~/60;
+      int minutes = ((seconds-(hours*360))~/60);
+      seconds = seconds - (minutes*60) - (hours*360);
       return "Duration: ${hours}h:${minutes}m:${seconds}s";
     }
     else {
@@ -178,8 +179,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
 
     return Scaffold(
         backgroundColor: Colors.black,
-        body: Column(
-            children: [
+        body:
               Container(
                   padding: const EdgeInsets.fromLTRB(0, 75, 0, 0),
                   alignment: Alignment.bottomCenter,
@@ -247,33 +247,34 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                                 fontSize: 15
                             )
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
+                        Padding(
+                            padding: EdgeInsets.fromLTRB(0, screenHeight*.2, 0, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
                                 onPressed: () {
                                   setState(() {
                                     Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (context) => const HomeScreen()));
+                                        MaterialPageRoute(builder: (context) => const HomeScreen()));
                                   });
                                 },
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.white38),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white38),
                                 child: const Text('Discard'),
-                            ),
-                            ElevatedButton(
+                              ),
+                              ElevatedButton(
                                 onPressed: () {
-                                   _showDialog();
+                                  _showDialog();
                                 },
                                 child: const Text('Save'),
-                            ),
-                          ],
-                        )
+                              ),
+                            ],
+                          ),
+                        ),
+
                       ]
                   )
               ),
-
-            ]
-        )
     );
   }
 }
