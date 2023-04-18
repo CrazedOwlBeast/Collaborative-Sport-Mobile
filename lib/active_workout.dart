@@ -89,7 +89,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           .listen(_onPositionUpdate);
       startTimer();
       debugPrint('Exercise Type = ${widget.exerciseType}');
-      if (deviceList != null) {
+      if (deviceList != null && pauseWorkout) {
         for (BleSensorDevice device in deviceList!) {
           if (device.type == 'HR') {
             subscribeStreamHR = BleManager.flutterReactiveBle.subscribeToCharacteristic(
@@ -213,8 +213,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
-        BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
+        // BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
+        // BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
       });
     }
 
