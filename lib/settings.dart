@@ -17,7 +17,6 @@ class SettingsStorage {
 
 class Settings extends StatefulWidget {
   SettingsStorage settings;
-
   Settings({super.key, required this.settings});
 
   @override
@@ -136,7 +135,7 @@ class _SettingsState extends State<Settings>
                         child: SizedBox(
                             width: screenWidth / 1.5,
                             child: TextField(
-                                onSubmitted: (value) {
+                                onChanged: (value) {
                                   widget.settings.name = getName();
                                 },
                                 controller: nameController,
@@ -162,7 +161,7 @@ class _SettingsState extends State<Settings>
                         child: SizedBox(
                             width: screenWidth / 4,
                             child: TextField(
-                                onSubmitted: (value) {
+                                onChanged: (value) {
                                   hrController.text = calculateMaxHRString(value);
                                   widget.settings.age = getAge();
                                 },
@@ -206,7 +205,9 @@ class _SettingsState extends State<Settings>
                                 )))),
                     Padding(padding: EdgeInsets.all(10)),
                     ElevatedButton(
-                      onPressed: _saveSettings,
+                      onPressed: () {
+                        _saveSettings;
+                      },
                       child: const Text('Save Settings'),
                     )
                   ],

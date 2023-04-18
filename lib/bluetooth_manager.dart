@@ -15,9 +15,6 @@ class BluetoothManager {
   StreamSubscription? dataSubscription;
   StreamSubscription? stateSubscription;
 
-  //device data to broadcast
-  final Map<int, Map<String, String>> _deviceData = {};
-
   //streamController for device data
   final StreamController<String>
     _deviceDataStreamController = StreamController.broadcast();

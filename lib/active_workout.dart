@@ -199,6 +199,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       if (subscribeStreamPower != null) {
         subscribeStreamPower?.cancel();
       }
+      BluetoothManager.instance.startStateSubscription();
     super.dispose();
       if(_positionStreamSubscription != null) {
         _positionStreamSubscription.cancel();
@@ -212,8 +213,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         duration = Duration(seconds: seconds);
 
         //Testing purposes for peers
-        //BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
-        //BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
+        BluetoothManager.instance.broadcastString('0: ${rng.nextInt(200)}');
+        BluetoothManager.instance.broadcastString('1: ${rng.nextInt(200)}');
       });
     }
 

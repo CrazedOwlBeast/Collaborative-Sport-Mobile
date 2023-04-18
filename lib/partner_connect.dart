@@ -37,10 +37,8 @@ class PartnerConnect extends StatefulWidget {
 
 class _PartnerConnectState extends State<PartnerConnect> {
   List<Device> devices = [];
-  List<Device> connectedDevices = [];
   NearbyService nearbyService = BluetoothManager.nearbyService;
   late StreamSubscription? subscription;
-  //late StreamSubscription receivedDataSubscription;
 
   bool isInit = false;
 
@@ -53,9 +51,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
   @override
   void dispose() {
     subscription?.cancel();
-    //receivedDataSubscription.cancel();
-    //nearbyService.stopBrowsingForPeers();
-    //nearbyService.stopAdvertisingPeer();
+    BluetoothManager.instance.startStateSubscription();
     super.dispose();
   }
 
@@ -104,31 +100,6 @@ class _PartnerConnectState extends State<PartnerConnect> {
   _onTabItemListener(Device device) {
     if (device.state == SessionState.connected) {
       nearbyService.sendMessage(device.deviceId, "Hello world");
-      // showDialog(
-      //     context: context,
-      //     builder: (BuildContext context) {
-      //       final myController = TextEditingController();
-      //       return AlertDialog(
-      //         title: Text("Send message"),
-      //         content: TextField(controller: myController),
-      //         actions: [
-      //           TextButton(
-      //             child: Text("Cancel"),
-      //             onPressed: () {
-      //               Navigator.of(context).pop();
-      //             },
-      //           ),
-      //           TextButton(
-      //             child: Text("Send"),
-      //             onPressed: () {
-      //               nearbyService.sendMessage(
-      //                   device.deviceId, myController.text);
-      //               myController.text = '';
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     });
     }
   }
 
@@ -150,6 +121,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
         );
         break;
       case SessionState.connected:
+        BluetoothManager.instance.connectedDevices.remove(device);
         nearbyService.disconnectPeer(deviceID: device.deviceId);
         break;
       case SessionState.connecting:
@@ -158,7 +130,6 @@ class _PartnerConnectState extends State<PartnerConnect> {
   }
 
   void init() async {
-    //nearbyService = NearbyService();
     String devInfo = '';
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -169,25 +140,38 @@ class _PartnerConnectState extends State<PartnerConnect> {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
       devInfo = iosInfo.localizedModel;
     }
-    await nearbyService.init(
-        serviceType: 'mp-connection',
-        deviceName: widget.myFullName.isEmpty
-            ? devInfo
-            : widget.myFullName + " (" + devInfo + ")",
-        strategy: Strategy.P2P_CLUSTER,
-        callback: (isRunning) async {
-          if (isRunning) {
-            widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
 
-            await nearbyService.stopAdvertisingPeer();
-            await nearbyService.stopBrowsingForPeers();
-            await Future.delayed(Duration(microseconds: 200));
-            nearbyService.startAdvertisingPeer();
-            nearbyService.startBrowsingForPeers();
-          }
-        });
+    if (BluetoothManager.instance.connectedDevices.isEmpty) {
+      await nearbyService.init(
+          serviceType: 'mp-connection',
+          deviceName: widget.myFullName.isEmpty
+              ? devInfo
+              : "${widget.myFullName} ($devInfo)",
+          strategy: Strategy.P2P_CLUSTER,
+          callback: (isRunning) async {
+            if (isRunning) {
+              widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
+
+              await nearbyService.stopAdvertisingPeer();
+              await nearbyService.stopBrowsingForPeers();
+              await Future.delayed(Duration(microseconds: 200));
+              nearbyService.startAdvertisingPeer();
+              nearbyService.startBrowsingForPeers();
+            }
+          });
+
+    }
+    else {
+      setState(() {
+        devices.addAll(BluetoothManager.instance.connectedDevices.values
+            .where((d) => d.state == SessionState.connected)
+            .toList());
+      });
+    }
+
     subscription = BluetoothManager.instance.startStateSubscription();
     subscription?.onData((devicesList) {
+      debugPrint('code is run');
       devicesList.forEach((element) {
         print(
             " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");
@@ -206,6 +190,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
         if (element.state == SessionState.notConnected &&
             BluetoothManager.instance.connectedDevices
                 .containsKey(element.deviceId)) {
+
           BluetoothManager.instance.connectedDevices.remove(element.deviceId);
 
           LoggerEvent loggerEvent = LoggerEvent(eventType: 10);
@@ -218,22 +203,9 @@ class _PartnerConnectState extends State<PartnerConnect> {
       setState(() {
         devices.clear();
         devices.addAll(devicesList);
-        connectedDevices.clear();
-        connectedDevices.addAll(devicesList
-            .where((d) => d.state == SessionState.connected)
-            .toList());
       });
     });
 
-    // StreamSubscription receivedDataSubscription =
-    //     nearbyService.dataReceivedSubscription(callback: (data) {
-    //       print("dataReceivedSubscription: ${jsonEncode(data)}");
-    //       showToast(jsonEncode(data),
-    //           context: context,
-    //           axis: Axis.horizontal,
-    //           alignment: Alignment.center,
-    //           position: StyledToastPosition.bottom);
-    //     });
   }
 
   @override
