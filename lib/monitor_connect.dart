@@ -53,7 +53,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
     //scan for sensors
     debugPrint('Begin scan');
     if (flutterReactiveBle.status == BleStatus.ready) {
-      widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
+      widget.logger.loggerEvents.events.add(LoggerEvent(eventType: "11"));
       //scanSubscription?.cancel();
       scanSubscription = flutterReactiveBle.scanForDevices(withServices: [
         HEART_RATE_SERVICE_UUID,
@@ -206,7 +206,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                             .add(connectedSensor);
 
                                         LoggerEvent loggerEvent =
-                                            LoggerEvent(eventType: 12);
+                                            LoggerEvent(eventType: "12");
                                         loggerEvent.bleDeviceName =
                                             'heart rate monitor ${connectedSensor.deviceId}';
                                         loggerEvent.processEvent();
@@ -232,7 +232,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                             .add(connectedSensor);
 
                                         LoggerEvent loggerEvent =
-                                            LoggerEvent(eventType: 12);
+                                            LoggerEvent(eventType: "12");
                                         loggerEvent.bleDeviceName =
                                             'power meter ${connectedSensor.deviceId}';
                                         loggerEvent.processEvent();
@@ -246,7 +246,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                               element.deviceId == device.id);
 
                                       LoggerEvent loggerEvent =
-                                          LoggerEvent(eventType: 13);
+                                          LoggerEvent(eventType: "13");
                                       loggerEvent.bleDeviceName = device.id;
                                       loggerEvent.processEvent();
                                       widget.logger.loggerEvents.events

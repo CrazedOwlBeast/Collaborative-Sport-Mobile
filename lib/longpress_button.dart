@@ -34,12 +34,12 @@ class _LongPressButtonState extends State<LongPressButton> {
           _timer?.cancel();
           _timer = null;
           _progress = 0;
-          LoggerEvent loggedEvent = LoggerEvent(eventType: 6);
+          LoggerEvent loggedEvent = LoggerEvent(eventType: "6");
           loggedEvent.workoutType = widget.exerciseType;
           loggedEvent.processEvent();
           widget.logger.loggerEvents.events.add(loggedEvent);
 
-          widget.logger.workout?.endTimestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+          widget.logger.workout?.endTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
           /// Send logger data to analytics group.
           widget.logger.uploadWorkoutLogs();

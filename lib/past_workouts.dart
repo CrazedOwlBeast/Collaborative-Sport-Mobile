@@ -45,9 +45,9 @@ class _PastWorkoutsState extends State<PastWorkouts> {
       Map<String, dynamic> log = jsonDecode(workouts[index].jsonString);
       Map<String, dynamic> workout = log['workout'];
       //DateTime? date = DateTime.tryParse(workout['start_timestamp']);
-      int? seconds = int.tryParse(workout['start_timestamp']);
-      if (seconds != null) {
-        DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds*1000));
+      int? ms = workout['start_timestamp'];
+      if (ms != null) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch((ms*1000));
         String time = DateFormat.jm().format(date);
         return "$time ${date.month}/${date.day}/${date.year}";
       }

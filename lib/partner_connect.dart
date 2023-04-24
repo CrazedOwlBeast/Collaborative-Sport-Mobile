@@ -150,7 +150,7 @@ class _PartnerConnectState extends State<PartnerConnect> {
           strategy: Strategy.P2P_CLUSTER,
           callback: (isRunning) async {
             if (isRunning) {
-              widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 11));
+              widget.logger.loggerEvents.events.add(LoggerEvent(eventType: "11"));
 
               await nearbyService.stopAdvertisingPeer();
               await nearbyService.stopBrowsingForPeers();
@@ -181,11 +181,11 @@ class _PartnerConnectState extends State<PartnerConnect> {
           BluetoothManager.instance.connectedDevices[element.deviceId] =
               element;
 
-          LoggerEvent loggerEvent = LoggerEvent(eventType: 9);
-          loggerEvent.partnerDeviceId = element.deviceName;
-          loggerEvent.partnerDeviceId = element.deviceId;
-          loggerEvent.processEvent();
-          widget.logger.loggerEvents.events.add(loggerEvent);
+          //LoggerEvent loggerEvent = LoggerEvent(eventType: "9");
+          //loggerEvent.partnerName = element.deviceName;
+          //loggerEvent.partnerDeviceId = element.deviceId;
+          //loggerEvent.processEvent();
+          //widget.logger.loggerEvents.events.add(loggerEvent);
         }
         if (element.state == SessionState.notConnected &&
             BluetoothManager.instance.connectedDevices
@@ -193,11 +193,11 @@ class _PartnerConnectState extends State<PartnerConnect> {
 
           BluetoothManager.instance.connectedDevices.remove(element.deviceId);
 
-          LoggerEvent loggerEvent = LoggerEvent(eventType: 10);
-          loggerEvent.partnerDeviceId = element.deviceName;
-          loggerEvent.partnerDeviceId = element.deviceId;
-          loggerEvent.processEvent();
-          widget.logger.loggerEvents.events.add(loggerEvent);
+          //LoggerEvent loggerEvent = LoggerEvent(eventType: "10");
+          //loggerEvent.partnerDeviceId = element.deviceName;
+          //loggerEvent.partnerDeviceId = element.deviceId;
+          //loggerEvent.processEvent();
+          //widget.logger.loggerEvents.events.add(loggerEvent);
         }
       });
       setState(() {

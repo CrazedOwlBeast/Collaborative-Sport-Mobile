@@ -82,6 +82,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       widget.logger.startWorkout();
       widget.logger.workout?.workoutType = widget.exerciseType;
       deviceList = BleManager.instance.connectedSensors;
+      widget.logger.workout?.loggerHeartRate.maxHeartRate = widget.settings.maxHR;
+
       // _getUserLocation();
       _getCurrentLocation();
       _positionStreamSubscription = Geolocator.getPositionStream(
@@ -749,8 +751,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       setState(() {
                         if(pauseWorkout)
                         {
-                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 7));
-                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: "7"));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: "2");
                           loggedEvent.buttonName = "pause_workout";
                           loggedEvent.processEvent();
                           widget.logger.loggerEvents.events.add(loggedEvent);
@@ -761,8 +763,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         }
                         else
                         {
-                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: 8));
-                          LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+                          widget.logger.loggerEvents.events.add(LoggerEvent(eventType: "8"));
+                          LoggerEvent loggedEvent = LoggerEvent(eventType: "2");
                           loggedEvent.buttonName = "resume_workout";
                           loggedEvent.processEvent();
                           widget.logger.loggerEvents.events.add(loggedEvent);

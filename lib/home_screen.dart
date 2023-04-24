@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    LoggerEvent loggedEvent = LoggerEvent(eventType: 1);
+    LoggerEvent loggedEvent = LoggerEvent(eventType: "1");
     loggedEvent.currentPage = "home_page";
     logger.loggerEvents.events.add(loggedEvent);
     super.dispose();
@@ -363,7 +363,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     _showPartnerAlert();
                   }
                   else {
-                    LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                    LoggerEvent loggedEvent = LoggerEvent(eventType: "5");
+                    loggedEvent.workoutType = exerciseType;
+                    loggedEvent.processEvent();
                     logger.loggerEvents.events.add(loggedEvent);
                     Navigator.of(context).push(_createRoute(
                         exerciseType,
@@ -403,7 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                  LoggerEvent loggedEvent = LoggerEvent(eventType: "5");
+                  loggedEvent.workoutType = exerciseType;
+                  loggedEvent.processEvent();
                   logger.loggerEvents.events.add(loggedEvent);
                   Navigator.of(context).push(_createRoute(
                       exerciseType,
@@ -581,7 +585,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         _showPartnerAlert();
                       }
                       else {
-                        LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                        LoggerEvent loggedEvent = LoggerEvent(eventType: "5");
+                        loggedEvent.workoutType = exerciseType;
+                        loggedEvent.processEvent();
                         logger.loggerEvents.events.add(loggedEvent);
                         Navigator.of(context).push(_createRoute(
                             exerciseType,
@@ -635,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialStateProperty.all(Colors.orange), // <-- Button color
             ),
             onPressed: () async {
-              LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+              LoggerEvent loggedEvent = LoggerEvent(eventType: "2");
               loggedEvent.buttonName = "connect_monitors_button";
               loggedEvent.processEvent();
               logger.loggerEvents.events.add(loggedEvent);
@@ -659,7 +665,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialStateProperty.all(Colors.orange), // <-- Button color
             ),
             onPressed: () async {
-              LoggerEvent loggedEvent = LoggerEvent(eventType: 2);
+              LoggerEvent loggedEvent = LoggerEvent(eventType: "2");
               loggedEvent.buttonName = "connect_partners_button";
               loggedEvent.processEvent();
               logger.loggerEvents.events.add(loggedEvent);
@@ -684,12 +690,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  LoggerEvent loggedEvent = LoggerEvent(eventType: 5);
+                  LoggerEvent loggedEvent = LoggerEvent(eventType: "5");
                   loggedEvent.workoutType = exerciseType;
                   loggedEvent.processEvent();
                   logger.loggerEvents.events.add(loggedEvent);
 
-                  loggedEvent = LoggerEvent(eventType: 3);
+                  loggedEvent = LoggerEvent(eventType: "3");
                   loggedEvent.prevPage = "home_page";
                   loggedEvent.nextPage = "active_workout_page";
                   loggedEvent.processEvent();
