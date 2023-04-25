@@ -83,7 +83,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       widget.logger.workout?.workoutType = widget.exerciseType;
       deviceList = BleManager.instance.connectedSensors;
       widget.logger.workout?.loggerHeartRate.maxHeartRate = widget.settings.maxHR;
-
+      userName = widget.settings.name;
+      userDevice = widget.logger.userDevice?.deviceId;
       // _getUserLocation();
       _getCurrentLocation();
       _positionStreamSubscription = Geolocator.getPositionStream(
@@ -149,11 +150,17 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               peerName = event.substring(3, event.length);
               widget.logger.workout?.partnerName = peerName;
               BluetoothManager.instance.broadcastString('4');
+              if (!peerNameConfirmed) {
+                BluetoothManager.instance.broadcastString('2: $userName');
+              }
               break;
             case 3:
               peerDeviceId = event.substring(3, event.length);
               widget.logger.workout?.partnerDeviceId = peerDeviceId;
               BluetoothManager.instance.broadcastString('5');
+              if (!peerDeviceConfirmed) {
+                BluetoothManager.instance.broadcastString('3: $userDevice');
+              }
               break;
             case 4:
               peerNameConfirmed = true;
@@ -165,6 +172,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           }
         });
       });
+
+      // Broadcast user info to partner.
+      if (BluetoothManager.instance.connectedDevices.isNotEmpty) {
+        if (!peerNameConfirmed) {
+          BluetoothManager.instance.broadcastString('2: $userName');
+        }
+        if (!peerDeviceConfirmed) {
+          BluetoothManager.instance.broadcastString('3: $userDevice');
+        }
+      }
 
       stateSubsciption = BluetoothManager.instance.reconnectStateSubscription();
 
@@ -355,20 +372,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           ? ((heartrate! / maxHR) * 100).round()
           : heartrate;
       final String heartRateText = _displayPercent ? '%' : 'bpm';
-
-      // Broadcast user info to partner.
-      if (!peerNameConfirmed) {
-        setState(() {
-          userName = widget.settings.name;
-          BluetoothManager.instance.broadcastString('2: $userName');
-        });
-      }
-      if (!peerDeviceConfirmed) {
-        setState(() {
-          userDevice = widget.logger.userDevice?.deviceId;
-          BluetoothManager.instance.broadcastString('3: $userDevice');
-        });
-      }
 
       // Create UI for monitors.
       // TODO: Only display monitor types that are connected?
