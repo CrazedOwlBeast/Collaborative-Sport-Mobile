@@ -45,7 +45,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
   }
 
   String _getStartTime() {
-    int? seconds = int.tryParse(workoutJson['start_timestamp']);
+    int? seconds = workoutJson['start_timestamp'];
     if (seconds != null) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds*1000));
       String time = DateFormat.jm().format(date);
@@ -57,8 +57,8 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
   }
 
   String _getDuration() {
-    int? start = int.tryParse(workoutJson['start_timestamp']);
-    int? end = int.tryParse(workoutJson['end_timestamp']);
+    int? start = workoutJson['start_timestamp'];
+    int? end = workoutJson['end_timestamp'];
     if (start != null && end != null) {
       int seconds = end - start;
       int hours = seconds~/360;
@@ -81,7 +81,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
   }
 
   String _getPartners() {
-    if (workoutJson['partners'].isEmpty) {
+    if (workoutJson['partners'] != null) {
       return "Partners: ";
     }
     else {

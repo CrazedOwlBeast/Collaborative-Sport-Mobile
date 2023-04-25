@@ -66,12 +66,11 @@ class _SettingsState extends State<Settings>
   }
 
   String calculateMaxHRString(String age) {
-    return (208 - (0.7 * int.parse(age))).toString();
+    return (208 - (0.7 * int.parse(age))).floor().toString();
   }
 
   @override
   void deactivate() {
-
     super.deactivate();
   }
 
@@ -163,6 +162,7 @@ class _SettingsState extends State<Settings>
                             child: TextField(
                                 onChanged: (value) {
                                   hrController.text = calculateMaxHRString(value);
+                                  widget.settings.maxHR = getMaxHR();
                                   widget.settings.age = getAge();
                                 },
                                 controller: ageController,
@@ -193,7 +193,7 @@ class _SettingsState extends State<Settings>
                                   widget.settings.maxHR = getMaxHR();
                                 },
                                 onSubmitted: (value) {
-                                  debugPrint(value);
+                                  widget.settings.maxHR = getMaxHR();
                                 },
                                 controller: hrController,
                                 keyboardType: TextInputType.number,
