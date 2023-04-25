@@ -85,9 +85,11 @@ class _SettingsState extends State<Settings>
     if (profileID == null) {
       settings = ProfileSettings(name: name, age: age, maxHR: maxHR);
     } else {
-      settings = ProfileSettings(id: profileID, name: name, age: age, maxHR: maxHR);
+      settings =
+          ProfileSettings(id: profileID, name: name, age: age, maxHR: maxHR);
     }
-    ProfileSettings newSettings = await WorkoutDatabase.instance.updateSettings(settings);
+    ProfileSettings newSettings =
+        await WorkoutDatabase.instance.updateSettings(settings);
     profileID = newSettings.id;
     debugPrint(profileID.toString());
   }
@@ -98,125 +100,151 @@ class _SettingsState extends State<Settings>
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-          backgroundColor: Colors.black,
-          body: Column(
-              children: [
-            Padding(padding: EdgeInsets.all(40)),
-            Text("Edit Profile",
-                style: TextStyle(fontSize: 35, color: Colors.white)),
-            Padding(padding: EdgeInsets.all(5)),
-            Container(
-                height: screenHeight / 7,
-                width: screenWidth / 3,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.black,
+            body: ListView(children: [
+              Padding(padding: EdgeInsets.all(10)),
+              Text("Edit Profile",
+                  style: TextStyle(fontSize: 25, color: Colors.white),
+                  textAlign: TextAlign.center),
+              Padding(padding: EdgeInsets.all(5)),
+              Container(
+                height: screenHeight / 10,
+                width: screenWidth / 5,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(width: 2, color: Colors.white)),
-                child: Icon(Icons.person, color: Colors.white, size: 110),
-            ),
-            SizedBox(
-              height: screenHeight * 0.5,
-              width: screenWidth,
-              child:
-                Column(
-                  children: [
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          child: Text(
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                            "Name",
-                            textAlign: TextAlign.left,
-                          ),
-                        )),
-                    Padding(padding: EdgeInsets.all(5)),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: SizedBox(
-                            width: screenWidth / 1.5,
-                            child: TextField(
-                                onChanged: (value) {
-                                  widget.settings.name = getName();
-                                },
-                                controller: nameController,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: Colors.grey,
-                                  hintText: 'Enter name',
-                                )))),
-                    Padding(padding: EdgeInsets.all(10)),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          child: Text(
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                            "Age",
-                            textAlign: TextAlign.left,
-                          ),
-                        )),
-                    Padding(padding: EdgeInsets.all(5)),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: SizedBox(
-                            width: screenWidth / 4,
-                            child: TextField(
-                                onChanged: (value) {
-                                  hrController.text = calculateMaxHRString(value);
-                                  widget.settings.maxHR = getMaxHR();
-                                  widget.settings.age = getAge();
-                                },
-                                controller: ageController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: Colors.grey,
-                                  hintText: 'Enter age',
-                                )))),
-                    Padding(padding: EdgeInsets.all(10)),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          child: Text(
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                            "Max Heart Rate",
-                            textAlign: TextAlign.left,
-                          ),
-                        )),
-                    Padding(padding: EdgeInsets.all(5)),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: SizedBox(
-                            width: screenWidth / 4,
-                            child: TextField(
-                                onChanged: (value) {
-                                  widget.settings.maxHR = getMaxHR();
-                                },
-                                onSubmitted: (value) {
-                                  widget.settings.maxHR = getMaxHR();
-                                },
-                                controller: hrController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: Colors.grey,
-                                  hintText: 'Enter max HR',
-                                )))),
-                    Padding(padding: EdgeInsets.all(10)),
-                    ElevatedButton(
-                      onPressed: () {
-                        _saveSettings();
-                      },
-                      child: const Text('Save Settings'),
-                    )
-                  ],
-                )
-            )
-          ])
-      )
-    );
+                child:
+                    FittedBox(child: Icon(Icons.person, color: Colors.white)),
+              ),
+              Padding(padding: EdgeInsets.all(5)),
+              SizedBox(
+                  child: Column(
+                children: [
+                  Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        child: Text(
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          "Name",
+                          textAlign: TextAlign.left,
+                        ),
+                      )),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                          width: screenWidth / 1.5,
+                          child: TextField(
+                              onChanged: (value) {
+                                widget.settings.name = getName();
+                              },
+                              controller: nameController,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.grey,
+                                hintText: 'Enter name',
+                              )))),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        child: Text(
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          "Age",
+                          textAlign: TextAlign.left,
+                        ),
+                      )),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                          width: screenWidth / 1.5,
+                          child: TextField(
+                              onChanged: (value) {
+                                hrController.text = calculateMaxHRString(value);
+                                widget.settings.maxHR = getMaxHR();
+                                widget.settings.age = getAge();
+                              },
+                              controller: ageController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.grey,
+                                hintText: 'Enter age',
+                              )))),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        child: Text(
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          "Max Heart Rate",
+                          textAlign: TextAlign.left,
+                        ),
+                      )),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                          width: screenWidth / 1.5,
+                          child: TextField(
+                              onChanged: (value) {
+                                widget.settings.maxHR = getMaxHR();
+                              },
+                              onSubmitted: (value) {
+                                widget.settings.maxHR = getMaxHR();
+                              },
+                              controller: hrController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.grey,
+                                hintText: 'Enter max HR',
+                              )))),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        child: Text(
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          "Target FTP",
+                          textAlign: TextAlign.left,
+                        ),
+                      )),
+                  Padding(padding: EdgeInsets.all(5)),
+                  Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                          width: screenWidth / 1.5,
+                          child: TextField(
+                              onChanged: (value) {
+                                //TODO: assign widget.settings.targetFTP similar to how it is done above to max HR.
+                              },
+                              onSubmitted: (value) {
+                                //TODO: assign widget.settings.targetFTP similar to how it is done above to max HR.
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.grey,
+                                hintText: 'Enter target FTP',
+                              )))),
+                  Padding(padding: EdgeInsets.all(10)),
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveSettings();
+                    },
+                    child: const Text('Save Settings'),
+                  )
+                ],
+              ))
+            ])));
   }
 }
