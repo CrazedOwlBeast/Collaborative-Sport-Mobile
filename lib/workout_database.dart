@@ -59,13 +59,19 @@ class WorkoutDatabase {
     ''');
   }
 
-  void addLog(String logToSend) async {
+  Future<int> addLog(String logToSend) async {
     final db = await instance.database;
 
     Map<String, Object?> logMap = {
       "log" : logToSend
     };
-    await db.insert(tableLogs, logMap);
+
+    return await db.insert(tableLogs, logMap);
+  }
+
+  void deleteLogById(int logId) async {
+    final db = await instance.database;
+    db.delete(tableLogs, where: '${LogsFields.id} = $logId');
   }
 
   // TODO: Delete logs individually as they are sent.
@@ -74,18 +80,27 @@ class WorkoutDatabase {
     db.delete(tableLogs);
   }
 
-  Future<List<String>> getLogs() async {
-    List<String> logs = [];
-
+  Future<List<Map<String, Object?>>> getLogs() async {
+    List<Map<String, Object?>> maps = [];
     final db = await instance.database;
-    List maps = await db.query(tableLogs);
-    if (maps.isNotEmpty) {
-      for (var map in maps) {
-        logs.add(map['log']);
-      }
+
+    // Try to read saved logs. Create table if it doesn't exist (first run).
+    try {
+      maps = await db.query(tableLogs);
+    }
+    catch (e) {
+        if (e is DatabaseException) {
+          await db.execute('''
+            CREATE TABLE $tableLogs (
+            ${LogsFields.id} 'integer primary key autoincrement',
+            ${LogsFields.log} 'text not null'
+            )
+          ''');
+          maps = await db.query(tableLogs);
+        }
     }
 
-    return logs;
+    return maps;
   }
 
   Future<ProfileSettings> updateSettings(ProfileSettings settings) async {

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -8,19 +6,17 @@ import 'workout_database.dart';
 
 enum WorkoutType { cycling, running, walking }
 
-// TODO: Transmit logged data.
 // Class to be initialized at app start and log all events.
 class AppLogger {
   LoggerDevice? userDevice;
 
-  List<Map<String, dynamic>> workoutMaps = [];
-  List<LoggerWorkout> workouts = [];
+  List<Map<String, Object?>> logsToSend = [];
   bool workoutsToSend = false;
   bool sending = false;
+  int tempLogId = -1;
 
   LoggerWorkout? workout;
   LoggerEvents loggerEvents = LoggerEvents();
-
 
   AppLogger() {
     // Send app launch event when constructor is called (always from home screen).
@@ -30,22 +26,68 @@ class AppLogger {
     loggerEvents.events.add(loggedEvent);
 
     getLogsFromDb();
+
+    // Clear logs for testing.
+    //WorkoutDatabase.instance.deleteLogs();
   }
 
   // Check local db for logs to send.
-  void getLogsFromDb() async {
-    List<String> logsToSend = await WorkoutDatabase.instance.getLogs();
+  Future<List<Map<String, Object?>>> getLogsFromDb() async {
+    logsToSend = await WorkoutDatabase.instance.getLogs();
     if (logsToSend.isNotEmpty) {
-      for (String log in logsToSend) {
-        workoutMaps.add(jsonDecode(log));
-      }
       workoutsToSend = true;
+      uploadWorkoutLogs();
     }
+
+    return logsToSend;
+  }
+
+  // Save temp log during exercise, for when app closes before exercise ends.
+  void saveTempLog() async {
+    Map<String, dynamic> map = {};
+
+    // Use time at last log for workout end timestamp.
+    workout?.endTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // Log should have an event for app closing if this log is used.
+    LoggerEvent loggedEvent = LoggerEvent(eventType: "1");
+    loggedEvent.currentPage = "active_workout_page";
+    loggedEvent.processEvent();
+    loggerEvents.events.add(loggedEvent);
+
+    map['group_id'] = 2;
+    map['name'] = userDevice?.name;
+    map['device_id'] = userDevice?.deviceId;
+    map['workout'] = workout?.toMap();
+    map['events'] = loggerEvents.toMap();
+
+    if (tempLogId == -1) {
+      tempLogId = await WorkoutDatabase.instance.addLog(jsonEncode(map));
+    }
+    else {
+      WorkoutDatabase.instance.deleteLogById(tempLogId);
+      tempLogId = await WorkoutDatabase.instance.addLog(jsonEncode(map));
+    }
+
+    debugPrint("Temp log saved.");
+  }
+
+  void saveLog() async {
+    Map<String, dynamic> map = {};
+
+    map['group_id'] = 2;
+    map['name'] = userDevice?.name;
+    map['device_id'] = userDevice?.deviceId;
+    map['workout'] = workout?.toMap();
+    map['events'] = loggerEvents.toMap();
+
+    await WorkoutDatabase.instance.addLog(jsonEncode(map));
+
+    debugPrint("Log saved.");
   }
 
   void startWorkout() {
     workout = LoggerWorkout();
-    workouts.add(workout!);
   }
 
   // Prepare object for saving to local sqlite db.
@@ -62,38 +104,14 @@ class AppLogger {
     return map;
   }
 
-  // Prepare serializable object for export.
-  List<Map<String, dynamic>> toMap() {
-    for (LoggerWorkout _workout in workouts) {
-      Map<String, dynamic> map = {};
-
-      map['group_id'] = 2;
-      map['name'] = userDevice?.name;
-      map['device_id'] = userDevice?.deviceId;
-      // map['serial_number'] = userDevice?.serialNumber;
-      map['workout'] = _workout.toMap();
-      map['events'] = loggerEvents.toMap();
-
-      workoutMaps.add(map);
-
-      // Save logs to local db in case app is closed before successful send.
-      WorkoutDatabase.instance.addLog(jsonEncode(map));
-    }
-
-    // Clear workouts list and return list of prepared logs.
-    workouts.clear();
-    return workoutMaps;
-  }
-
   // Function to send JSON data to analytics group.
   void uploadWorkoutLogs() async {
     sending = true;
-    if (workouts.isNotEmpty) {
-      toMap();
-    }
+    logsToSend = await WorkoutDatabase.instance.getLogs();
 
     try {
-      while (workoutMaps.isNotEmpty) {
+      while (logsToSend.isNotEmpty) {
+
         HttpClient httpClient = HttpClient();
         HttpClientRequest request = await httpClient.postUrl(Uri.parse(
             'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/insert'));
@@ -101,8 +119,11 @@ class AppLogger {
             'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
         request.headers.contentType = ContentType('application', 'json');
 
+        Map<String, dynamic> currentLog = logsToSend.last;
+        Map<String, dynamic> currentLogJson = jsonDecode(currentLog['log']);
+
         Map<String, dynamic> body = {
-          'document': workoutMaps.last
+          'document': currentLogJson
         };
 
         debugPrint(jsonEncode(body));
@@ -114,7 +135,8 @@ class AppLogger {
 
         if (response.statusCode == 201 || response.statusCode == 200) {
           debugPrint(reply);
-          workoutMaps.removeLast();
+          WorkoutDatabase.instance.deleteLogById(currentLog['_id'] as int);
+
           // debugPrint(await response.stream.bytesToString());
         }
         else {
@@ -125,6 +147,8 @@ class AppLogger {
           sending = false;
           break;
         }
+
+        logsToSend = await WorkoutDatabase.instance.getLogs();
       }
 
       // All logs have sent successfully.
@@ -179,7 +203,6 @@ class LoggerWorkout {
   void logLocation(String location) {
     loggerLocation.data.add(LoggerWorkoutData(value: location));
   }
-
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};

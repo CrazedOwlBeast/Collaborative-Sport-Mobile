@@ -2,20 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:background_fetch/background_fetch.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/exercise_type.dart';
 import 'package:hello_world/partner_connect.dart';
 import 'package:hello_world/settings_model.dart';
 import 'package:hello_world/workout_database.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:hello_world/popup_dialog.dart';
 import 'active_workout.dart';
 import 'ble_manager.dart';
 import 'bluetooth_manager.dart';
@@ -99,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]);
       },
     );
-    Overlay.of(context)?.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void showConnectMonitorsDialog() {
@@ -130,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]);
       },
     );
-    Overlay.of(context)?.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void showConnectPartnersDialog() {
@@ -171,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-    Overlay.of(context)?.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void dismissMenu() {
@@ -512,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
     logger.userDevice = device;
 
     if (logger.workoutsToSend && !logger.sending) {
-      logger.uploadWorkoutLogs();
+      logger.getLogsFromDb();
     }
 
     final List<Widget> _children = [
