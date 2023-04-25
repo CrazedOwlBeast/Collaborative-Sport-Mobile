@@ -76,9 +76,25 @@ class WorkoutDatabase {
 
   Future<List<String>> getLogs() async {
     List<String> logs = [];
-
+    List maps = [];
     final db = await instance.database;
-    List maps = await db.query(tableLogs);
+
+    // Try to read saved logs. Create table if it doesn't exist (first run).
+    try {
+      maps = await db.query(tableLogs);
+    }
+    catch (e) {
+        if (e is DatabaseException) {
+          await db.execute('''
+            CREATE TABLE $tableLogs (
+            ${LogsFields.id} 'integer primary key autoincrement',
+            ${LogsFields.log} 'text not null'
+            )
+          ''');
+          maps = await db.query(tableLogs);
+        }
+    }
+
     if (maps.isNotEmpty) {
       for (var map in maps) {
         logs.add(map['log']);
