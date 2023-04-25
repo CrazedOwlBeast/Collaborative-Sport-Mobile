@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hello_world/workout_database.dart';
 
 import 'app_logger.dart';
 import 'completed_workout.dart';
@@ -41,7 +42,13 @@ class _LongPressButtonState extends State<LongPressButton> {
 
           widget.logger.workout?.endTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-          /// Send logger data to analytics group.
+          // Finish creating workout log.
+          widget.logger.saveLog();
+
+          // Delete temp log because workout is complete and about to be sent.
+          WorkoutDatabase.instance.deleteLogById(widget.logger.tempLogId);
+
+          // Send logger data to analytics group.
           widget.logger.uploadWorkoutLogs();
 
           // TODO: grab all information before transitioning to new screen

@@ -5,7 +5,6 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -14,9 +13,6 @@ import 'package:hello_world/longpress_button.dart';
 import 'package:hello_world/app_logger.dart';
 import 'package:hello_world/ble_sensor_device.dart';
 import 'package:hello_world/bluetooth_manager.dart';
-import 'package:hello_world/completed_workout.dart';
-import 'package:hello_world/exercise_type.dart';
-import 'package:hello_world/past_workouts.dart';
 import 'package:hello_world/settings.dart';
 
 import 'home_screen.dart';
@@ -93,7 +89,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       startTimer();
       debugPrint('Exercise Type = ${widget.exerciseType}');
       if (deviceList != null && pauseWorkout) {
-        for (BleSensorDevice device in deviceList!) {
+        for (BleSensorDevice device in deviceList) {
           if (device.type == 'HR') {
             subscribeStreamHR = BleManager.flutterReactiveBle.subscribeToCharacteristic(
                 QualifiedCharacteristic(
@@ -362,18 +358,21 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       final double pace = _changeDistance
           ? ((duration.inSeconds / _calculateTotalDistance()) * 1000 / 60)
           : ((duration.inSeconds / _calculateTotalDistance()) * 1609 / 60);
-      final String paceText = _changeDistance ? 'Pace\n(min/km)' : 'Pace\n(min/mi)';
 
       final double distance = _changeDistance
           ? (_calculateTotalDistance() / 1000)
           : (_calculateTotalDistance() / 1609);
-      final String distanceText = _changeDistance ? 'Distance\n(km)' : 'Distance\n(mi)';
 
       final int maxHR = int.parse(widget.settings.maxHR);
       final int? displayHRPercent = _displayPercent
           ? ((heartrate! / maxHR) * 100).round()
           : heartrate;
       final String heartRateText = _displayPercent ? '%' : 'bpm';
+
+      int logInterval = int.parse(seconds) % 5;
+      if (timer!.isActive && logInterval == 0) {
+        widget.logger.saveTempLog();
+      }
 
       // Create UI for monitors.
       // TODO: Only display monitor types that are connected?
