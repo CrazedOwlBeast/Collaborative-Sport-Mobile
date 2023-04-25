@@ -13,6 +13,7 @@ class SettingsStorage {
   String name = "";
   String age = "";
   String maxHR = "";
+  String ftp = "";
 }
 
 class Settings extends StatefulWidget {
@@ -31,6 +32,8 @@ class _SettingsState extends State<Settings>
   final nameController = TextEditingController();
   final ageController = TextEditingController();
   final hrController = TextEditingController();
+  final ftpController = TextEditingController();
+
   int? profileID;
 
   @override
@@ -50,6 +53,9 @@ class _SettingsState extends State<Settings>
       if (previous.maxHR != null) {
         hrController.text = previous.maxHR.toString();
       }
+      if (previous.ftp != null) {
+        ftpController.text = previous.ftp.toString();
+      }
     }
   }
 
@@ -63,6 +69,10 @@ class _SettingsState extends State<Settings>
 
   String getMaxHR() {
     return hrController.text;
+  }
+
+  String getTargetFTP() {
+    return ftpController.text;
   }
 
   String calculateMaxHRString(String age) {
@@ -80,13 +90,15 @@ class _SettingsState extends State<Settings>
     int? age = int.tryParse(ageString);
     String maxHRString = getMaxHR();
     int? maxHR = int.tryParse(maxHRString);
+    String targetFTPString = getTargetFTP();
+    int? ftp = int.tryParse(targetFTPString);
     ProfileSettings settings;
-    debugPrint("$name $age $maxHR");
+    debugPrint("$name $age $maxHR $ftp");
     if (profileID == null) {
-      settings = ProfileSettings(name: name, age: age, maxHR: maxHR);
+      settings = ProfileSettings(name: name, age: age, maxHR: maxHR, ftp: ftp);
     } else {
-      settings =
-          ProfileSettings(id: profileID, name: name, age: age, maxHR: maxHR);
+      settings = ProfileSettings(
+          id: profileID, name: name, age: age, maxHR: maxHR, ftp: ftp);
     }
     ProfileSettings newSettings =
         await WorkoutDatabase.instance.updateSettings(settings);
@@ -168,6 +180,7 @@ class _SettingsState extends State<Settings>
                                 hrController.text = calculateMaxHRString(value);
                                 widget.settings.maxHR = getMaxHR();
                                 widget.settings.age = getAge();
+                                widget.settings.ftp = getTargetFTP();
                               },
                               controller: ageController,
                               keyboardType: TextInputType.number,
@@ -224,11 +237,12 @@ class _SettingsState extends State<Settings>
                           width: screenWidth / 1.5,
                           child: TextField(
                               onChanged: (value) {
-                                //TODO: assign widget.settings.targetFTP similar to how it is done above to max HR.
+                                widget.settings.ftp = getTargetFTP();
                               },
                               onSubmitted: (value) {
-                                //TODO: assign widget.settings.targetFTP similar to how it is done above to max HR.
+                                widget.settings.ftp = getTargetFTP();
                               },
+                              controller: ftpController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
