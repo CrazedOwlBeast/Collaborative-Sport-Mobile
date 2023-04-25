@@ -81,6 +81,7 @@ class _SettingsState extends State<Settings>
     String maxHRString = getMaxHR();
     int? maxHR = int.tryParse(maxHRString);
     ProfileSettings settings;
+    debugPrint("$name $age $maxHR");
     if (profileID == null) {
       settings = ProfileSettings(name: name, age: age, maxHR: maxHR);
     } else {
@@ -88,6 +89,7 @@ class _SettingsState extends State<Settings>
     }
     ProfileSettings newSettings = await WorkoutDatabase.instance.updateSettings(settings);
     profileID = newSettings.id;
+    debugPrint(profileID.toString());
   }
 
   @override
@@ -206,7 +208,7 @@ class _SettingsState extends State<Settings>
                     Padding(padding: EdgeInsets.all(10)),
                     ElevatedButton(
                       onPressed: () {
-                        _saveSettings;
+                        _saveSettings();
                       },
                       child: const Text('Save Settings'),
                     )
