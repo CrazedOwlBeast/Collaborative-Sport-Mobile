@@ -28,7 +28,7 @@ class AppLogger {
     getLogsFromDb();
 
     // Clear logs for testing.
-    WorkoutDatabase.instance.deleteLogs();
+    // WorkoutDatabase.instance.deleteLogs();
   }
 
   // Check local db for logs to send.

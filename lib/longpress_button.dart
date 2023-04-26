@@ -89,7 +89,7 @@ class _LongPressButtonState extends State<LongPressButton> {
             height: 110,
             child: CircularProgressIndicator(
               strokeWidth: 6.0,
-              color: Colors.black,
+              color: Colors.orange,
               value: _progress,
             ),
           ),
