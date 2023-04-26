@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_config/flutter_config.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -116,7 +117,7 @@ class AppLogger {
         HttpClientRequest request = await httpClient.postUrl(Uri.parse(
             'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/insert'));
         request.headers.set('apiKey',
-            'e1G2HlcHaZPlJ2NOoFtP3ocZilWoQOoPIdZ8pndoFpECJhoNn7e5684PV0NTZSXg');
+            FlutterConfig.get('ANALYTICS_API_KEY'));
         request.headers.contentType = ContentType('application', 'json');
 
         Map<String, dynamic> currentLog = logsToSend.last;

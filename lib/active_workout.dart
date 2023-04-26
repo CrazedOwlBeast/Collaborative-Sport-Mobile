@@ -380,9 +380,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           ? speed * 1.60934
           : speed;
 
-      final int maxHR = int.parse(widget.settings.maxHR);
+      final int? maxHR = int.tryParse(widget.settings.maxHR);
       final int? displayHRPercent = _displayPercent
-          ? ((heartrate! / maxHR) * 100).round()
+          ? ((heartrate! / maxHR!) * 100).round()
           : heartrate;
       final String heartRateText = _displayPercent ? '%' : 'bpm';
 
@@ -430,9 +430,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                _displayPercent = !_displayPercent;
-                              });
+                              if (maxHR != null) {
+                                setState(() {
+                                  _displayPercent = !_displayPercent;
+                                });
+                              }
                             },
                             child :SizedBox(
                               width: screenWidth * .15,
