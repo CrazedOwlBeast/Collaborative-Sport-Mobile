@@ -298,7 +298,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               width: 5,
               points: _points,
             ));
-          });
+
+            if (controller != null) {
+              controller!.animateCamera(CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(position.latitude, position.longitude),
+                  zoom: 15,
+                ),
+              ));
+          }});
         }
       });
     }
@@ -323,8 +331,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       });
     }
 
-    _onMapCreated(GoogleMapController controller) {
-      controller = controller;
+    _onMapCreated(GoogleMapController _controller) {
+      setState(() {
+        controller = _controller;
+      });
+
     }
 
     double _calculateTotalDistance(){
