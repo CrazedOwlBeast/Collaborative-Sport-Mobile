@@ -640,26 +640,6 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             child: Icon(Icons.location_on, color: Colors.black),
                           )
                       ),
-                      /// Back button
-                      Positioned(
-                        top: 40,
-                        left: 15,
-                        // for testing purposes to be able to go back to home screen
-                        child: GestureDetector(
-                          onTap: () {
-                            if (subscribeStreamHR != null) {
-                              subscribeStreamHR?.cancel();
-                            }
-                            if (subscribeStreamPower != null) {
-                              subscribeStreamPower?.cancel();
-                            }
-                            Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                    (route) => false);
-                          },
-                          child: const Icon(Icons.arrow_back, size: 50),
-                        ),
-                      ),
                     ],
                   ),
                 ),
