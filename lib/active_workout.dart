@@ -183,7 +183,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       stateSubsciption = BluetoothManager.instance.reconnectStateSubscription();
 
+      // Get speed update
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
+
       initPlatformState();
     }
 
@@ -307,19 +309,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         if(_initialPosition != null) {
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
 
-          // Log the distance every meter.
-          // TODO: Determine logging interval for distance.
-          if (distance.floor() > lastLoggedDistance + 1) {
-            widget.logger.workout?.logDistance(distance.floor().toString());
-            lastLoggedDistance = distance.floor();
-          }
+          // Log the total distance.
+          widget.logger.workout?.logDistance(_calculateTotalDistance().toStringAsFixed(2));
 
-          // Log the latitude/longitude
+          // Log the current latitude/longitude
           // TODO: Determine logging interval for location.
           String location = "${newPosition.latitude}/${newPosition.longitude}";
           widget.logger.workout?.logLocation(location);
 
-          // C
+          // Log the current speed
+          widget.logger.workout?.logSpeed(speed.toStringAsFixed(1));
         }
       });
     }
@@ -364,6 +363,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       final double distance = _changeDistance
           ? (_calculateTotalDistance() / 1000)
           : (_calculateTotalDistance() / 1609);
+
+      final double speedDisplay = _changeDistance
+          ? speed * 1.60934
+          : speed;
 
       final int maxHR = int.parse(widget.settings.maxHR);
       final int? displayHRPercent = _displayPercent
@@ -615,6 +618,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                           gestureRecognizers: Set()
                             ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
                           polylines: _polyLines
+
                       ),
                       Padding(
                           padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
@@ -764,7 +768,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                               ),
                                               Text(
                                                 //_calculateTotalDistance() < 15 ? "-" : (distance / (duration.inSeconds / 3600)).toStringAsFixed(1),
-                                                _calculateTotalDistance() < 15 ? "-" : (speed).toStringAsFixed(1),
+                                                _calculateTotalDistance() < 15 ? "-" : (speedDisplay).toStringAsFixed(1),
                                                 style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
                                                 textAlign: TextAlign.center,
                                               ),
