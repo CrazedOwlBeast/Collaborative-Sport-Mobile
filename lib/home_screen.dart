@@ -212,6 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
         if (previous.maxHR != null) {
           settings.maxHR = previous.maxHR.toString();
         }
+        if (previous.ftp != null) {
+          settings.ftp = previous.ftp.toString();
+        }
       }
     });
     return result;

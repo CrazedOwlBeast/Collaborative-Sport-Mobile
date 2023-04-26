@@ -81,6 +81,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       widget.logger.workout?.workoutType = widget.exerciseType;
       deviceList = BleManager.instance.connectedSensors;
       widget.logger.workout?.loggerHeartRate.maxHeartRate = widget.settings.maxHR;
+      widget.logger.workout?.loggerPower.ftp = widget.settings.ftp;
       userName = widget.settings.name;
       userDevice = widget.logger.userDevice?.deviceId;
       // _getUserLocation();

@@ -422,11 +422,13 @@ class LoggerDistance {
 // Class to store power data.
 class LoggerPower {
   String units = "watts";
+  String ftp = "";
   List<LoggerWorkoutData> data = [];
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
 
+    map['ftp'] = int.parse(ftp);
     map['units'] = units;
 
     List<Map<String, dynamic>> dataMap = [];
