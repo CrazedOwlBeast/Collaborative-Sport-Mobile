@@ -666,7 +666,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
                                       },
                                       style: ButtonStyle(
-                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
+                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 0, 0, 0)),
                                         backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                         overlayColor: MaterialStateProperty.all(Colors.transparent),
                                         shape: MaterialStateProperty.all(const CircleBorder()),
@@ -674,26 +674,32 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       child: SizedBox(
                                           height: screenHeight * 0.12,
                                           width: (screenWidth * 0.95) / 4,
-                                          child:
-                                          Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Duration',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              Text(
-                                                '$minutes:$seconds',
-                                                style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              const Text(
-                                                'min:s',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child:
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  const Text(
+                                                    'Duration',
+                                                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 1,
+                                                  ),
+                                                  Text(
+                                                    '$minutes:$seconds',
+                                                    style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 1,
+                                                  ),
+                                                  const Text(
+                                                    'min:s',
+                                                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 1,
+                                                  ),
+                                                ],
+                                              )
                                           )
                                       )),
                                   /// Distance
@@ -704,7 +710,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       });
                                     },
                                     style: ButtonStyle(
-                                      padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
+                                      padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 0, 0, 0)),
                                       backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                       overlayColor: MaterialStateProperty.all(Colors.transparent),
                                       shape: MaterialStateProperty.all(const CircleBorder()),
@@ -712,27 +718,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                     child: SizedBox(
                                       height: screenHeight * 0.12,
                                       width: (screenWidth * 0.95) / 4,
-                                      child:
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Distance',
-                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            _calculateTotalDistance() < 15 ? "-" : distance.toStringAsFixed(2),
-                                            style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            distanceUnits,
-                                            style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Distance',
+                                              style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Text(
+                                              _calculateTotalDistance() < 15 ? "-" : distance.toStringAsFixed(2),
+                                              style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Text(
+                                              distanceUnits,
+                                              style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                        )
                                     ),
                                   ),
                                   /// Speed
@@ -743,7 +751,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                         });
                                       },
                                       style: ButtonStyle(
-                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
+                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 0, 0, 0)),
                                         backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                         overlayColor: MaterialStateProperty.all(Colors.transparent),
                                         shape: MaterialStateProperty.all(const CircleBorder()),
@@ -751,27 +759,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       child: SizedBox(
                                           height: screenHeight * 0.12,
                                           width: (screenWidth * 0.95) / 4,
-                                          child:
-                                          Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Speed',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              Text(
-                                                //_calculateTotalDistance() < 15 ? "-" : (distance / (duration.inSeconds / 3600)).toStringAsFixed(1),
-                                                _calculateTotalDistance() < 15 ? "-" : (speedDisplay).toStringAsFixed(1),
-                                                style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              Text(
-                                                '$distanceUnits/hour',
-                                                style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
+                                          child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Speed',
+                                                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  Text(
+                                                    //_calculateTotalDistance() < 15 ? "-" : (distance / (duration.inSeconds / 3600)).toStringAsFixed(1),
+                                                    _calculateTotalDistance() < 15 ? "-" : (speedDisplay).toStringAsFixed(1),
+                                                    style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  Text(
+                                                    '$distanceUnits/hour',
+                                                    style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
+                                              )
                                           )
                                       )
                                   ),
@@ -783,7 +793,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                         });
                                       },
                                       style: ButtonStyle(
-                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
+                                        padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 0, 0, 0)),
                                         backgroundColor: MaterialStateProperty.all(Colors.black) ,
                                         overlayColor: MaterialStateProperty.all(Colors.transparent),
                                         shape: MaterialStateProperty.all(const CircleBorder()),
@@ -791,26 +801,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                       child: SizedBox(
                                           height: screenHeight * 0.12,
                                           width: (screenWidth * 0.95) / 4,
-                                          child:
-                                          Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Pace',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              Text(
-                                                _calculateTotalDistance() < 15 ? "-" : pace.toStringAsFixed(1),
-                                                style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              Text(
-                                                'min/$distanceUnits',
-                                                style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
+                                          child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  const Text(
+                                                    'Pace',
+                                                    style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  Text(
+                                                    _calculateTotalDistance() < 15 ? "-" : pace.toStringAsFixed(1),
+                                                    style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  Text(
+                                                    'min/$distanceUnits',
+                                                    style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
+                                              )
                                           )
                                       )
                                   )
@@ -830,7 +843,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     ElevatedButton(
                         style: ButtonStyle(
                             overlayColor: MaterialStateProperty.all(Colors.transparent),
-                            padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
+                            //padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
                             elevation: MaterialStateProperty.all(0.0),
                             backgroundColor: MaterialStateProperty.all(Colors.transparent.withOpacity(0.0))
                         ),
@@ -864,11 +877,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                         },
                         child:
                         CircleAvatar(
-                          radius: 50,
+                          radius: screenHeight * .06,
                           backgroundColor: Colors.orange,
                           child: pauseWorkout ?
-                          Icon(Icons.pause, size: 80,color: Colors.white) :
-                          Icon(Icons.play_arrow, size: 80, color: Colors.white),
+                          Icon(Icons.pause, size: screenHeight * .1, color: Colors.white) :
+                          Icon(Icons.play_arrow, size: screenHeight * .11, color: Colors.white),
                         )
                     ),
                     Visibility(

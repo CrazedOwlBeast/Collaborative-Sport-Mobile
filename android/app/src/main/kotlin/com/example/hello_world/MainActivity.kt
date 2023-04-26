@@ -1,4 +1,4 @@
-package com.example.CollaborativeSport
+package com.UF.CollaborativeSport
 
 import io.flutter.embedding.android.FlutterActivity
 

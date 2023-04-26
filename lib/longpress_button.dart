@@ -77,6 +77,9 @@ class _LongPressButtonState extends State<LongPressButton> {
 
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTapDown: (_) => _startTimer(),
       onTapCancel: _cancelTimer,
@@ -85,8 +88,8 @@ class _LongPressButtonState extends State<LongPressButton> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: 110,
-            height: 110,
+            width: screenHeight * .14,
+            height: screenHeight * .14,
             child: CircularProgressIndicator(
               strokeWidth: 6.0,
               color: Colors.orange,
@@ -94,11 +97,11 @@ class _LongPressButtonState extends State<LongPressButton> {
             ),
           ),
           CircleAvatar(
-            radius: 50,
+            radius: screenHeight * .06,
             backgroundColor: Colors.orange,
             child: Icon(
               Icons.stop,
-              size: 80,
+              size: screenHeight * .1,
               color: Colors.white,
             ),
           ),
