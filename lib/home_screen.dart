@@ -59,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late PartnerConnect partnerConnectAdvertiser;
   bool noSensors = false;
   bool noPartners = false;
+  GoogleMapController? _controller;
 
   // Create logger for entire app.
   static LoggerDevice device = LoggerDevice();
@@ -179,6 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
 
+  late StreamSubscription<Position> _positionStreamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -190,6 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _showSetupDialog();
     });
+
+    _positionStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
+        .listen(_onPositionUpdate);
   }
 
   Future<bool> _getProfileSettings() async {
@@ -204,6 +211,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         if (previous.maxHR != null) {
           settings.maxHR = previous.maxHR.toString();
+        }
+        if (previous.ftp != null) {
+          settings.ftp = previous.ftp.toString();
         }
       }
     });
@@ -252,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
     LoggerEvent loggedEvent = LoggerEvent(eventType: "1");
     loggedEvent.currentPage = "home_page";
     logger.loggerEvents.events.add(loggedEvent);
-    super.dispose();
+    _positionStreamSubscription.cancel();
   }
 
   void _getDeviceInfo() async {
@@ -302,6 +312,19 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+  void _onPositionUpdate(Position position) {
+    setState(() {
+      if (_controller != null) {
+        _controller!.animateCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 15,
+          ),
+        ));
+      }
+    });
+  }
+
   // Shows popup dialog when buttons are pressed.
   _onMapCreated(GoogleMapController controller) async {
     if (!controller1.isCompleted) {
@@ -309,6 +332,9 @@ class _HomeScreenState extends State<HomeScreen> {
         controller1.complete(controller);
       });
     }
+    setState(() {
+      _controller = controller;
+    });
   }
 
   void setExerciseType(String type) {

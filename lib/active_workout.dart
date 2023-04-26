@@ -63,6 +63,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     String userName = "";
     String peerInfo = "";
 
+    String distanceUnits = "mi";
+
     Position? _initialPosition;
     Position? _currentPosition;
     List<LatLng> _points = [];
@@ -79,6 +81,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       widget.logger.workout?.workoutType = widget.exerciseType;
       deviceList = BleManager.instance.connectedSensors;
       widget.logger.workout?.loggerHeartRate.maxHeartRate = widget.settings.maxHR;
+      widget.logger.workout?.loggerPower.ftp = widget.settings.ftp;
       userName = widget.settings.name;
       userDevice = widget.logger.userDevice?.deviceId;
       // _getUserLocation();
@@ -181,7 +184,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
       stateSubsciption = BluetoothManager.instance.reconnectStateSubscription();
 
+      // Get speed update
       Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation)).listen((Position position) => setSpeed(position.speed));
+
       initPlatformState();
     }
 
@@ -238,7 +243,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     }
 
     void setSpeed(double speed) {
-      this.speed = (this.speed + speed)/2;
+      this.speed = speed;
     }
 
 
@@ -294,7 +299,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
               width: 5,
               points: _points,
             ));
-          });
+
+            if (controller != null) {
+              controller!.animateCamera(CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(position.latitude, position.longitude),
+                  zoom: 15,
+                ),
+              ));
+          }});
         }
       });
     }
@@ -305,25 +318,25 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         if(_initialPosition != null) {
           _points.add(LatLng(newPosition.latitude, newPosition.longitude));
 
-          // Log the distance every meter.
-          // TODO: Determine logging interval for distance.
-          if (distance.floor() > lastLoggedDistance + 1) {
-            widget.logger.workout?.logDistance(distance.floor().toString());
-            lastLoggedDistance = distance.floor();
-          }
+          // Log the total distance.
+          widget.logger.workout?.logDistance(_calculateTotalDistance().toStringAsFixed(2));
 
-          // Log the latitude/longitude
+          // Log the current latitude/longitude
           // TODO: Determine logging interval for location.
           String location = "${newPosition.latitude}/${newPosition.longitude}";
           widget.logger.workout?.logLocation(location);
 
-          // C
+          // Log the current speed
+          widget.logger.workout?.logSpeed(speed.toStringAsFixed(1));
         }
       });
     }
 
-    _onMapCreated(GoogleMapController controller) {
-      controller = controller;
+    _onMapCreated(GoogleMapController _controller) {
+      setState(() {
+        controller = _controller;
+      });
+
     }
 
     double _calculateTotalDistance(){
@@ -362,6 +375,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       final double distance = _changeDistance
           ? (_calculateTotalDistance() / 1000)
           : (_calculateTotalDistance() / 1609);
+
+      final double speedDisplay = _changeDistance
+          ? speed * 1.60934
+          : speed;
 
       final int maxHR = int.parse(widget.settings.maxHR);
       final int? displayHRPercent = _displayPercent
@@ -582,6 +599,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         ));
       }
 
+      // Change distance units if needed.
+      if (_changeDistance) {
+        distanceUnits = 'km';
+      }
+      else {
+        distanceUnits = 'mi';
+      }
+
       return Scaffold(
         body: DecoratedBox(
           decoration: const BoxDecoration(color: Colors.black87),
@@ -605,6 +630,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                           gestureRecognizers: Set()
                             ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
                           polylines: _polyLines
+
                       ),
                       Padding(
                           padding: EdgeInsets.fromLTRB(350, 50, 30, 0),
@@ -691,9 +717,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   /// Distance
                                   ElevatedButton(
                                     onPressed: () {
-                                      //setState(() {
-                                      //  _changeDistance = !_changeDistance;
-                                      //});
+                                      setState(() {
+                                        _changeDistance = !_changeDistance;
+                                      });
                                     },
                                     style: ButtonStyle(
                                       padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
@@ -718,9 +744,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                             style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
                                             textAlign: TextAlign.center,
                                           ),
-                                          const Text(
-                                            'km',
-                                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                          Text(
+                                            distanceUnits,
+                                            style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
                                             textAlign: TextAlign.center,
                                           ),
                                         ],
@@ -730,9 +756,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   /// Speed
                                   ElevatedButton(
                                       onPressed: () {
-                                        //setState(() {
-                                        //  _changeDistance = !_changeDistance;
-                                        //});
+                                        setState(() {
+                                          _changeDistance = !_changeDistance;
+                                        });
                                       },
                                       style: ButtonStyle(
                                         padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
@@ -748,18 +774,19 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               const Text(
-                                                'Avg Speed',
+                                                'Speed',
                                                 style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400),
                                                 textAlign: TextAlign.center,
                                               ),
                                               Text(
-                                                _calculateTotalDistance() < 15 ? "-" : (distance / (duration.inSeconds / 3600)).toStringAsFixed(1),
+                                                //_calculateTotalDistance() < 15 ? "-" : (distance / (duration.inSeconds / 3600)).toStringAsFixed(1),
+                                                _calculateTotalDistance() < 15 ? "-" : (speedDisplay).toStringAsFixed(1),
                                                 style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
                                                 textAlign: TextAlign.center,
                                               ),
-                                              const Text(
-                                                'km/hour',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                              Text(
+                                                '$distanceUnits/hour',
+                                                style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
                                                 textAlign: TextAlign.center,
                                               ),
                                             ],
@@ -769,9 +796,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                   /// Pace
                                   ElevatedButton(
                                       onPressed: () {
-                                        //setState(() {
-                                        //  _changeDistance = !_changeDistance;
-                                        //});
+                                        setState(() {
+                                          _changeDistance = !_changeDistance;
+                                        });
                                       },
                                       style: ButtonStyle(
                                         padding: MaterialStateProperty.all(const EdgeInsets.fromLTRB(0, 10, 0, 0)),
@@ -796,9 +823,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                                                 style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.w600, height: 1.45),
                                                 textAlign: TextAlign.center,
                                               ),
-                                              const Text(
-                                                'min/km',
-                                                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
+                                              Text(
+                                                'min/$distanceUnits',
+                                                style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w400, height: 1.3),
                                                 textAlign: TextAlign.center,
                                               ),
                                             ],

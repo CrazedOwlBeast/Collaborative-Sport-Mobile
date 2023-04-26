@@ -28,7 +28,7 @@ class AppLogger {
     getLogsFromDb();
 
     // Clear logs for testing.
-    //WorkoutDatabase.instance.deleteLogs();
+    // WorkoutDatabase.instance.deleteLogs();
   }
 
   // Check local db for logs to send.
@@ -175,6 +175,7 @@ class LoggerWorkout {
   LoggerDistance loggerDistance = LoggerDistance();
   LoggerPower loggerPower = LoggerPower();
   LoggerLocation loggerLocation = LoggerLocation();
+  LoggerSpeed loggerSpeed = LoggerSpeed();
 
   String partnerName = "";
   String partnerDeviceId = "";
@@ -204,6 +205,10 @@ class LoggerWorkout {
     loggerLocation.data.add(LoggerWorkoutData(value: location));
   }
 
+  void logSpeed(String speed) {
+    loggerSpeed.data.add(LoggerWorkoutData(value: speed));
+  }
+
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
 
@@ -230,6 +235,9 @@ class LoggerWorkout {
     }
     if (loggerLocation.data.isNotEmpty) {
       map['location'] = loggerLocation.toMap();
+    }
+    if (loggerSpeed.data.isNotEmpty) {
+      map['speed'] = loggerSpeed.toMap();
     }
 
     return map;
@@ -414,6 +422,28 @@ class LoggerDistance {
 // Class to store power data.
 class LoggerPower {
   String units = "watts";
+  String ftp = "";
+  List<LoggerWorkoutData> data = [];
+
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {};
+
+    map['ftp'] = int.parse(ftp);
+    map['units'] = units;
+
+    List<Map<String, dynamic>> dataMap = [];
+    for (LoggerWorkoutData event in data) {
+      dataMap.add(event.toMap());
+    }
+    map['data'] = dataMap;
+
+    return map;
+  }
+}
+
+// Class to store location data.
+class LoggerLocation {
+  String units = "latitude/longitude";
   List<LoggerWorkoutData> data = [];
 
   Map<String, dynamic> toMap() {
@@ -431,9 +461,9 @@ class LoggerPower {
   }
 }
 
-// Class to store location data.
-class LoggerLocation {
-  String units = "latitude/longitude";
+// Class to store speed data.
+class LoggerSpeed {
+  String units = "miles_per_hour";
   List<LoggerWorkoutData> data = [];
 
   Map<String, dynamic> toMap() {
