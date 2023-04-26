@@ -59,6 +59,7 @@ class _SettingsState extends State<Settings>
     }
   }
 
+//these methods allow the values from each textbox's controller to be grabbed.
   String getName() {
     return nameController.text;
   }
@@ -75,9 +76,12 @@ class _SettingsState extends State<Settings>
     return ftpController.text;
   }
 
+// This method takes in the user's age as a string and applies the Max HR formula to return a string of the user's max heart rate.
   String calculateMaxHRString(String age) {
     return (208 - (0.7 * int.parse(age))).floor().toString();
   }
+
+  // Not sure if there should also be a method for calculating max FTP. Possible TODO?
 
   @override
   void deactivate() {
@@ -153,6 +157,7 @@ class _SettingsState extends State<Settings>
                               onChanged: (value) {
                                 widget.settings.name = getName();
                               },
+                              // Controller paradigm used to get values from the textboxes.
                               controller: nameController,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
@@ -177,6 +182,7 @@ class _SettingsState extends State<Settings>
                           width: screenWidth / 1.5,
                           child: TextField(
                               onChanged: (value) {
+                                // Calculate user's max heart rate upon entering of age.
                                 hrController.text = calculateMaxHRString(value);
                                 widget.settings.maxHR = getMaxHR();
                                 widget.settings.age = getAge();
