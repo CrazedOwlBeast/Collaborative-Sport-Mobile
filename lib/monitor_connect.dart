@@ -31,6 +31,9 @@ class MonitorConnect extends StatefulWidget {
 }
 
 class _MonitorConnectState extends State<MonitorConnect> {
+  // UUIDs: https://www.bluetooth.com/specifications/assigned-numbers/.
+  // Heart Rate Services: https://www.bluetooth.com/specifications/specs/heart-rate-profile-1-0/
+  // Cycling Power Services: https://www.bluetooth.com/specifications/specs/cycling-power-profile-1-1/
   final Uuid HEART_RATE_SERVICE_UUID = Uuid.parse('180d');
   final Uuid HEART_RATE_CHARACTERISTIC = Uuid.parse('2a37');
   final Uuid CYCLING_POWER_SERVICE_UUID = Uuid.parse('1818');
