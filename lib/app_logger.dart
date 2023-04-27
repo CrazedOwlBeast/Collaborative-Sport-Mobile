@@ -9,14 +9,23 @@ enum WorkoutType { cycling, running, walking }
 
 // Class to be initialized at app start and log all events.
 class AppLogger {
+  // Holds user info.
   LoggerDevice? userDevice;
 
+  // List to hold logs that haven't been sent.
   List<Map<String, Object?>> logsToSend = [];
+
+  // Keep track of when logs are being sent so that too many connections aren't opened.
   bool workoutsToSend = false;
   bool sending = false;
+
+  // Used to keep track of temp log in database
   int tempLogId = -1;
 
+  // Keep track of current workout
   LoggerWorkout? workout;
+
+  // Keep track of events from app launch until workout is ended.
   LoggerEvents loggerEvents = LoggerEvents();
 
   AppLogger() {
@@ -26,6 +35,7 @@ class AppLogger {
     loggedEvent.processEvent();
     loggerEvents.events.add(loggedEvent);
 
+    // Check local database for pending uploads.
     getLogsFromDb();
 
     // Clear logs for testing.
@@ -44,6 +54,7 @@ class AppLogger {
   }
 
   // Save temp log during exercise, for when app closes before exercise ends.
+  // Sent when app launches if not replaced by a completed exercise.
   void saveTempLog() async {
     Map<String, dynamic> map = {};
 
@@ -56,12 +67,14 @@ class AppLogger {
     loggedEvent.processEvent();
     loggerEvents.events.add(loggedEvent);
 
+    // JSON elements
     map['group_id'] = 2;
     map['name'] = userDevice?.name;
     map['device_id'] = userDevice?.deviceId;
     map['workout'] = workout?.toMap();
     map['events'] = loggerEvents.toMap();
 
+    // Create new log in db if temp log doesn't already exist. Otherwise, overwrite.
     if (tempLogId == -1) {
       tempLogId = await WorkoutDatabase.instance.addLog(jsonEncode(map));
     }
@@ -73,6 +86,7 @@ class AppLogger {
     debugPrint("Temp log saved.");
   }
 
+  // Prepare and save log after workout is completed normally.
   void saveLog() async {
     Map<String, dynamic> map = {};
 
@@ -87,6 +101,7 @@ class AppLogger {
     debugPrint("Log saved.");
   }
 
+  // Start a workout.
   void startWorkout() {
     workout = LoggerWorkout();
   }
@@ -112,7 +127,7 @@ class AppLogger {
 
     try {
       while (logsToSend.isNotEmpty) {
-
+        // Create request object and prepare headers.
         HttpClient httpClient = HttpClient();
         HttpClientRequest request = await httpClient.postUrl(Uri.parse(
             'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/insert'));
@@ -120,6 +135,7 @@ class AppLogger {
             FlutterConfig.get('ANALYTICS_API_KEY'));
         request.headers.contentType = ContentType('application', 'json');
 
+        // Load a log and prepare JSON
         Map<String, dynamic> currentLog = logsToSend.last;
         Map<String, dynamic> currentLogJson = jsonDecode(currentLog['log']);
 
@@ -127,18 +143,22 @@ class AppLogger {
           'document': currentLogJson
         };
 
-        debugPrint(jsonEncode(body));
+        // Print the JSON document for testing.
+        // debugPrint(jsonEncode(body));
+
+        // Send the body.
         request.write(jsonEncode(body));
 
+        // Get the response.
         HttpClientResponse response = await request.close();
         String reply = await response.transform(utf8.decoder).join();
         httpClient.close();
 
+        // Delete pending log from db if status code was successfull.
         if (response.statusCode == 201 || response.statusCode == 200) {
           debugPrint(reply);
           WorkoutDatabase.instance.deleteLogById(currentLog['_id'] as int);
 
-          // debugPrint(await response.stream.bytesToString());
         }
         else {
           // Save for later if data can't be sent.
@@ -149,6 +169,7 @@ class AppLogger {
           break;
         }
 
+        // Update logsToSend before continuing loop.
         logsToSend = await WorkoutDatabase.instance.getLogs();
       }
 
@@ -158,6 +179,7 @@ class AppLogger {
       WorkoutDatabase.instance.deleteLogs();
     }
 
+    // Save logs for later if app doesn't have a network connection when workout ends.
     on Exception catch (_) {
       workoutsToSend = true;
       sending = false;
@@ -210,6 +232,7 @@ class LoggerWorkout {
     loggerSpeed.data.add(LoggerWorkoutData(value: speed));
   }
 
+  // Generate the JSON document for the workout.
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
 
@@ -223,7 +246,6 @@ class LoggerWorkout {
       }
       ];
     }
-
 
     if (loggerHeartRate.data.isNotEmpty) {
       map['heart_rate'] = loggerHeartRate.toMap();
@@ -245,6 +267,7 @@ class LoggerWorkout {
   }
 }
 
+// Class to keep track of events that are logged.
 class LoggerEvents {
   List<LoggerEvent> events = [];
 
@@ -259,7 +282,7 @@ class LoggerEvents {
 
 }
 
-// Class for app events.
+// Class for app individual app events.
 class LoggerEvent {
   final String eventType;
   int timestamp = -1;
@@ -283,6 +306,8 @@ class LoggerEvent {
     map['timestamp'] = timestamp;
   }
 
+  // This must be called before logging to set event attributes after creating event object.
+  // Event type is parameter when creating event object.
   void processEvent() {
     switch (eventType) {
       // App is launched.
@@ -334,7 +359,6 @@ class LoggerEvent {
 
       } break;
 
-      // TODO: Make sure partner_device_id makes sense.
       // Partner is connected.
       case "9": {
         map['partner_name'] = partnerName;

@@ -23,6 +23,7 @@ import 'app_logger.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Force phone into portrait mode.
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   FlutterConfig.loadEnvVariables();
@@ -51,22 +52,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  // Initialize clasee to hold settings values.
   SettingsStorage settings = SettingsStorage();
 
+  // Get responsive dialog sizes.
   late double dialogWidth = MediaQuery.of(context).size.width * 0.9;
   late double dialogHeight = MediaQuery.of(context).size.height * .60;
+
+  // Transparent overlays for dialogs.
   final LayerLink layerLink = LayerLink();
   late OverlayEntry overlayEntry;
   late Offset dialogOffset;
+
   late PartnerConnect partnerConnectAdvertiser;
+
+  // Keeps track of connection status.
   bool noSensors = false;
   bool noPartners = false;
+
+  // Object for map UI.
   GoogleMapController? _controller;
 
   // Create logger for entire app.
   static LoggerDevice device = LoggerDevice();
   static AppLogger logger = AppLogger();
 
+  // Dialog to choose exercise type.
   void showExerciseTypeDialog() {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
     overlayEntry = OverlayEntry(
@@ -101,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Overlay.of(context).insert(overlayEntry);
   }
 
+  // Dialog to connect to sensors.
   void showConnectMonitorsDialog() {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
     overlayEntry = OverlayEntry(
@@ -132,11 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Overlay.of(context).insert(overlayEntry);
   }
 
+  // Dialog to connect to partners.
   void showConnectPartnersDialog() {
     dialogOffset = Offset(dialogWidth * .06, dialogHeight * .12);
     overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
-        //partnerConnectAdvertiser = PartnerConnect(deviceType: DeviceType.advertiser, link: layerLink, offset: dialogOffset, dialogWidth: dialogWidth, dialogHeight: dialogHeight, overlayEntry: overlayEntry);
         return Stack(
           children: <Widget>[
             Positioned.fill(
@@ -173,34 +185,45 @@ class _HomeScreenState extends State<HomeScreen> {
     Overlay.of(context).insert(overlayEntry);
   }
 
+  // Close overlay.
   void dismissMenu() {
     overlayEntry.remove();
   }
 
+  // Default exercise type.
   String exerciseType = "Walking";
 
+  // Future map controller
   Completer<GoogleMapController> controller1 = Completer();
   static LatLng? _initialPosition;
 
+  // Used to listen for position updates.
   late StreamSubscription<Position> _positionStreamSubscription;
 
+  // Initialize home screen state.
   @override
   void initState() {
     super.initState();
+
     _getPermissions(); // TODO: Wait for permissions before getting location. (affects first run)
     _getUserLocation();
+
+    // Used to get device id to send to partner.
     _getDeviceInfo();
     logger.userDevice = device;
 
+    // Dialog shows at launch if name hasn't been set in Settings page.
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _showSetupDialog();
     });
 
+    // Subscribe to position stream.
     _positionStreamSubscription = Geolocator.getPositionStream(
         locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
         .listen(_onPositionUpdate);
   }
 
+  // Restore saved settings from local database
   Future<bool> _getProfileSettings() async {
     ProfileSettings? previous = await WorkoutDatabase.instance.readSettings();
     bool result = false;
@@ -222,6 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return result;
   }
 
+  // Dialog shows at launch if name hasn't been set in Settings page.
   void _showSetupDialog() async {
     bool result = await _getProfileSettings();
     if (!result) {
@@ -259,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
+  // Clean up when app is closed.
   @override
   void dispose() {
     LoggerEvent loggedEvent = LoggerEvent(eventType: "1");
@@ -267,6 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _positionStreamSubscription.cancel();
   }
 
+  // Get device id, to be sent to partner and logged.
   void _getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -281,6 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Function to get permissions.
+  // TODO: Request permissions in app.
   void _getPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.bluetooth,
@@ -303,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Moves camera to current location
   void _currentLocation() async {
     final GoogleMapController controller = await controller1.future;
     Position position = await Geolocator.getCurrentPosition();
@@ -314,6 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+  // Called when position changes.
   void _onPositionUpdate(Position position) {
     setState(() {
       if (_controller != null) {
@@ -345,7 +374,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
+  // Displays if user tries to start workout without selecting exercise type.
+  // Never reached because default exercise type is set.
+  // Analytics server rejects uploads without exercise type set.
   _showExerciseTypeAlert() {
     showDialog(
         context: context,
@@ -368,6 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Displays if user tries to start workout without a sensor connected.
   _showMonitorAlert() {
     showDialog(
         context: context,
@@ -414,6 +446,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Displays if user tries to start workout without a partner connected
   _showPartnerAlert() {
     showDialog(
         context: context,
@@ -455,9 +488,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // UI for dialog buttons that appear on map.
   _showDialogButtons(double screenHeight, double screenWidth) {
     return Stack(
       children: [
+        // Choose exercise type button
         Padding(
           padding: EdgeInsets.fromLTRB(
               screenWidth * 0.08, screenHeight * 0.63, 30, 0),
@@ -475,8 +510,8 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: Icon(_getIcon(), size: 30)),
         ),
+        // Connect to sensors button
         Padding(
-          /// Connect monitors
           padding: EdgeInsets.fromLTRB((screenWidth - 65) / 2,
               screenHeight * 0.63, 30, 0),
           child: ElevatedButton(
@@ -494,8 +529,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.bluetooth_connected,
                   size: 30)),
         ),
+        // Connect to partners button
         Padding(
-          /// Connect partners
           padding: EdgeInsets.fromLTRB(
               screenWidth * 0.78, screenHeight * 0.63, 30, 0),
           child: ElevatedButton(
@@ -515,6 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ]);
   }
 
+  // Change icon for exercise type button depending on type that is chosen.
   IconData _getIcon() {
     if (exerciseType == 'Running') {
       return Icons.directions_run;
@@ -527,18 +563,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Build home screen.
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
+    // Log user's name.
     device.name = settings.name;
     logger.userDevice = device;
 
+    // Check for unsent logs.
     if (logger.workoutsToSend && !logger.sending) {
       logger.getLogsFromDb();
     }
 
+    // Build UI for map.
     final List<Widget> _children = [
       CompositedTransformTarget(
         link: layerLink,
@@ -587,6 +627,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
             ),
           ),
+          // Go button.
           Container(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
               color: Colors.black,
@@ -599,6 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
+                      // Show necessary dialogs before running exercise.
                       if (exerciseType.isEmpty) {
                         _showExerciseTypeAlert();
                       }
@@ -609,10 +651,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         _showPartnerAlert();
                       }
                       else {
+                        // Log workout start
                         LoggerEvent loggedEvent = LoggerEvent(eventType: "5");
                         loggedEvent.workoutType = exerciseType;
                         loggedEvent.processEvent();
                         logger.loggerEvents.events.add(loggedEvent);
+
+                        // Navigate to active_workout page.
                         Navigator.of(context).push(_createRoute(
                             exerciseType,
                             settings));
@@ -762,6 +807,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: IndexedStack(children: _children, index: _currentIndex),
+      // Navigation bar
       bottomNavigationBar: SizedBox(
           height: MediaQuery.of(context).size.height *
               0.13, // navigation bar takes 12% of screen
