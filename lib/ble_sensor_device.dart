@@ -1,5 +1,6 @@
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
+//Class to store information of BLE devices
 class BleSensorDevice {
 
   final String deviceId;
