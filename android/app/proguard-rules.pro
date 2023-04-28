@@ -1,1 +1,1 @@
--keep class com.example.CollaborativeSport.BuildConfig { *; }
+-keep class com.UF.CollaborativeSport.BuildConfig { *; }
