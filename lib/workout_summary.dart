@@ -30,29 +30,31 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
     super.initState();
     workoutJson = jsonDecode(widget.workout.jsonString)["workout"];
     String polyLineJson = widget.workout.polylines;
-    PolylineList polylineList = PolylineList.fromJson(jsonDecode(polyLineJson));
-    Map<String, dynamic>? temp = cast<Map<String, dynamic>>(polylineList.polylines?.first);
-    if (temp != null) {
-      List<dynamic> templist = temp["points"];
-      List<LatLng> latlnglist = <LatLng>[];
-      for (dynamic x in templist) {
-        latlnglist.add(LatLng(x.first, x.last));
-      }
+    if (polyLineJson != '{"polylines":[]}') {
+      PolylineList polylineList = PolylineList.fromJson(jsonDecode(polyLineJson));
+      Map<String, dynamic>? temp = cast<Map<String, dynamic>>(polylineList.polylines?.first);
+      if (temp != null) {
+        List<dynamic> templist = temp["points"];
+        List<LatLng> latlnglist = <LatLng>[];
+        for (dynamic x in templist) {
+          latlnglist.add(LatLng(x.first, x.last));
+        }
 
-      Polyline myline = Polyline(
-        polylineId: PolylineId(temp["polylineId"]) ,
-        consumeTapEvents: temp["consumeTapEvents"],
-        color: Color(temp["color"]),
-        width: temp["width"],
-        points: latlnglist,
-      );
+        Polyline myline = Polyline(
+          polylineId: PolylineId(temp["polylineId"]) ,
+          consumeTapEvents: temp["consumeTapEvents"],
+          color: Color(temp["color"]),
+          width: temp["width"],
+          points: latlnglist,
+        );
 
-      setState(() {
-        initialPosition = latlnglist.first;
-        polylines.add(myline);
-      });
+        setState(() {
+          initialPosition = latlnglist.first;
+          polylines.add(myline);
+        });
     }
   }
+}
 
   String _getStartTime() {
     int? seconds = workoutJson['start_timestamp'];
@@ -147,7 +149,7 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
                         SizedBox(
                           width: screenWidth*.8,
                           height: screenHeight*.4,
-                          child: initialPosition == null ? Center(child:Text('loading map..', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
+                          child: initialPosition == null ? Center(child:Text('No location data...', style: TextStyle(fontFamily: 'Avenir-Medium', color: Colors.grey[400]),),) :
                           GoogleMap(
                             initialCameraPosition: CameraPosition(target: initialPosition!, zoom: 15),
                             rotateGesturesEnabled: false,
