@@ -87,6 +87,9 @@ class BluetoothManager {
   }
 
   //Sends string to all connected devices
+  //We chose to send data w/ the following format:
+  //(Number): (Data)
+  //
   Future<void> broadcastString(String str) async {
     for (String id in connectedDevices.keys) {
       nearbyService.sendMessage(id, str);

@@ -104,14 +104,12 @@ class _PartnerConnectState extends State<PartnerConnect> {
   }
 
   int getItemCount() {
-    // if (widget.deviceType == DeviceType.advertiser)
-    //   return connectedDevices.length;
-
     String debugString = devices.length.toString();
     debugPrint("devices.length: $debugString");
     return devices.length;
   }
 
+  //connect/disconnect from device
   _onButtonClicked(Device device) {
     switch (device.state) {
       case SessionState.notConnected:
@@ -141,6 +139,8 @@ class _PartnerConnectState extends State<PartnerConnect> {
       devInfo = iosInfo.localizedModel;
     }
 
+    //Scan for devices or show connected devices
+    //NOTE: for partner devices to stay connected, the devices must always be advertising and browsing
     if (BluetoothManager.instance.connectedDevices.isEmpty) {
       await nearbyService.init(
           serviceType: 'mp-connection',
@@ -159,7 +159,6 @@ class _PartnerConnectState extends State<PartnerConnect> {
               nearbyService.startBrowsingForPeers();
             }
           });
-
     }
     else {
       setState(() {
@@ -169,9 +168,10 @@ class _PartnerConnectState extends State<PartnerConnect> {
       });
     }
 
+    //state stream used to get list of scanned devices
+    //NOTE: new devices are only found when there is a change in state
     subscription = BluetoothManager.instance.startStateSubscription();
     subscription?.onData((devicesList) {
-      debugPrint('code is run');
       devicesList.forEach((element) {
         print(
             " deviceId: ${element.deviceId} | deviceName: ${element.deviceName} | state: ${element.state}");

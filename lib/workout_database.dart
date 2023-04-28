@@ -1,11 +1,11 @@
 import 'dart:core';
 
-import 'package:hello_world/settings_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-//import model
+//import models
 import 'workout_model.dart';
 import 'logs_model.dart';
+import 'package:hello_world/settings_model.dart';
 
 class WorkoutDatabase {
   static final WorkoutDatabase instance = WorkoutDatabase._init();
@@ -103,6 +103,7 @@ class WorkoutDatabase {
     return maps;
   }
 
+  //updates settings or inserts settings if none
   Future<ProfileSettings> updateSettings(ProfileSettings settings) async {
     final db = await instance.database;
 
@@ -122,6 +123,7 @@ class WorkoutDatabase {
     return settings.copy(id: id);
   }
 
+  //returns settigns from database (should only contain one)
   Future<ProfileSettings?> readSettings() async {
     final db = await instance.database;
 
