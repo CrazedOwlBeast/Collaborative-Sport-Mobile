@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:device_info/device_info.dart';
 import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 
 class BluetoothManager {
@@ -19,6 +18,7 @@ class BluetoothManager {
   final StreamController<String>
     _deviceDataStreamController = StreamController.broadcast();
 
+  //Stream for data received from partners
   Stream<String> get deviceDataStream => _deviceDataStreamController.stream;
 
   //Private Constructor
@@ -30,7 +30,7 @@ class BluetoothManager {
     });
   }
 
-  //unused, implement later
+  //unused, maybe implement later
   Future<void> disconnect(int id) async {
 
   }
@@ -64,6 +64,8 @@ class BluetoothManager {
     return stateSubscription;
   }
 
+  //Sets the stateSubsciption to detect unexpected disconnects, and attempts to reconnect
+  //Used in active_workout
   StreamSubscription? reconnectStateSubscription() {
     stateSubscription?.cancel();
     stateSubscription =
@@ -84,12 +86,17 @@ class BluetoothManager {
     return stateSubscription;
   }
 
+  //Sends string to all connected devices
+  //We chose to send data w/ the following format:
+  //(Number): (Data)
+  //
   Future<void> broadcastString(String str) async {
     for (String id in connectedDevices.keys) {
       nearbyService.sendMessage(id, str);
     }
   }
 
+  //Adds string to deviceDataStream
   Future<void> updateDeviceData(String str) async {
     _deviceDataStreamController.sink.add(str);
   }

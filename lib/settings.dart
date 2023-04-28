@@ -88,6 +88,7 @@ class _SettingsState extends State<Settings>
     super.deactivate();
   }
 
+  //saves the current settings to local database
   void _saveSettings() async {
     String name = getName();
     String ageString = getAge();

@@ -28,7 +28,6 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
   Position? initialPosition;
   GoogleMapController? mapController;
   late Map<String, dynamic> workoutJson;
-  //late var database;
 
 
   @override
@@ -109,6 +108,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
     controller = controller;
   }
 
+  //Dialog for naming workout
   void _showDialog() {
     showDialog(
         context: this.context,

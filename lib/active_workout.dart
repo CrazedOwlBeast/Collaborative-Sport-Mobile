@@ -91,6 +91,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           .listen(_onPositionUpdate);
       startTimer();
       debugPrint('Exercise Type = ${widget.exerciseType}');
+
+      //Read data from connected BLE sensors
       if (deviceList != null && pauseWorkout) {
         for (BleSensorDevice device in deviceList) {
           if (device.type == 'HR') {
@@ -133,6 +135,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           }
         }
       }
+
+      //Reads data received from partners
+      //0: HeartRate
+      //1: Power
+      //2: PeerName
+      //3: PeerDeviceID
+      //4: PeerNameConfirmed
+      //5: PeerDeviceConfirmed
       peerSubscription = BluetoothManager.instance.deviceDataStream.listen((event) {
         setState(() {
           int type = int.parse(event.substring(0, 1));

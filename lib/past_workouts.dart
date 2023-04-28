@@ -29,6 +29,7 @@ class _PastWorkoutsState extends State<PastWorkouts> {
       refreshWorkouts();
     }
 
+    //gets workouts from database
     Future refreshWorkouts() async {
       setState(() {
         isLoading = true;
@@ -44,7 +45,6 @@ class _PastWorkoutsState extends State<PastWorkouts> {
     String _getStartTime(int index) {
       Map<String, dynamic> log = jsonDecode(workouts[index].jsonString);
       Map<String, dynamic> workout = log['workout'];
-      //DateTime? date = DateTime.tryParse(workout['start_timestamp']);
       int? ms = workout['start_timestamp'];
       if (ms != null) {
         DateTime date = DateTime.fromMillisecondsSinceEpoch((ms*1000));

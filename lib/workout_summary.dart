@@ -21,7 +21,6 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
   GoogleMapController? mapController;
   late Map<String, dynamic> workoutJson;
   Set<Polyline> polylines = {};
-  //late var database;
 
   T? cast<T>(x) => x is T ? x : null;
 
@@ -29,6 +28,8 @@ class _WorkoutSummaryState extends State<WorkoutSummary> {
   void initState() {
     super.initState();
     workoutJson = jsonDecode(widget.workout.jsonString)["workout"];
+
+    //Gets polylines from workoutJson
     String polyLineJson = widget.workout.polylines;
     if (polyLineJson != '{"polylines":[]}') {
       PolylineList polylineList = PolylineList.fromJson(jsonDecode(polyLineJson));

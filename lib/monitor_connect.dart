@@ -43,7 +43,6 @@ class _MonitorConnectState extends State<MonitorConnect> {
   late List<DiscoveredDevice> devices;
   StreamSubscription? scanSubscription;
   StreamSubscription<ConnectionStateUpdate>? _connection;
-  //List<BleSensorDevice> connectedDevices = <BleSensorDevice>[];
   Color _colorTile = Colors.white;
   Map<DiscoveredDevice, String> deviceMap = {};
 
@@ -57,7 +56,6 @@ class _MonitorConnectState extends State<MonitorConnect> {
     debugPrint('Begin scan');
     if (flutterReactiveBle.status == BleStatus.ready) {
       widget.logger.loggerEvents.events.add(LoggerEvent(eventType: "11"));
-      //scanSubscription?.cancel();
       scanSubscription = flutterReactiveBle.scanForDevices(withServices: [
         HEART_RATE_SERVICE_UUID,
         CYCLING_POWER_SERVICE_UUID
@@ -66,25 +64,23 @@ class _MonitorConnectState extends State<MonitorConnect> {
         if (knownDeviceIndex >= 0) {
           devices[knownDeviceIndex] = device;
           if (BleManager.instance.connectedSensors.indexWhere((sensor) => device.id == sensor.deviceId)>-1) {
-            //map.putIfAbsent(device, () => DeviceConnectionState.connected);
             deviceMap[device] = "Connected";
           }
           else {
-            //map.putIfAbsent(device, () => DeviceConnectionState.disconnected);
             deviceMap[device] = "Disconnected";
           }
         } else {
           devices.add(device);
           debugPrint('Device found.');
           if (BleManager.instance.connectedSensors.indexWhere((sensor) => device.id == sensor.deviceId)>-1) {
-            //map.putIfAbsent(device, () => DeviceConnectionState.connected);
             deviceMap[device] = "Connected";
           }
           else {
-            //map.putIfAbsent(device, () => DeviceConnectionState.disconnected);
             deviceMap[device] = "Disconnected";
           }
         }
+
+        //set state every so often to show updated RSSI
         counter++;
         if (counter > 5) {
           setState(() {});
@@ -186,11 +182,11 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                         debugPrint(
                                             'Connection state update: ${update.connectionState}');
                                         setState(() {
-                                          //map.update(device, (value) => update.connectionState);
                                           deviceMap[device] = "Connecting";
                                         });
                                       });
 
+                                      //heart rate
                                       if (device.serviceUuids.any((service) =>
                                           service == HEART_RATE_SERVICE_UUID ||
                                           service ==
@@ -205,8 +201,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                           characteristicId:
                                               HEART_RATE_CHARACTERISTIC,
                                         );
-                                        BleManager.instance.connectedSensors
-                                            .add(connectedSensor);
+                                        BleManager.instance.connectedSensors.add(connectedSensor);
 
                                         LoggerEvent loggerEvent =
                                             LoggerEvent(eventType: "12");
@@ -215,7 +210,9 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                         loggerEvent.processEvent();
                                         widget.logger.loggerEvents.events
                                             .add(loggerEvent);
-                                      } else if (device.serviceUuids.any(
+                                      }
+                                      //power meter
+                                      else if (device.serviceUuids.any(
                                           (service) =>
                                               service ==
                                                   CYCLING_POWER_SERVICE_UUID ||
@@ -243,10 +240,10 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                             .add(loggerEvent);
                                       }
                                     } else {
+                                      //disconnect from device
                                       _connection?.cancel();
                                       BleManager.instance.connectedSensors.removeWhere(
-                                          (element) =>
-                                              element.deviceId == device.id);
+                                          (element) => element.deviceId == device.id);
 
                                       LoggerEvent loggerEvent =
                                           LoggerEvent(eventType: "13");
@@ -254,7 +251,7 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                       loggerEvent.processEvent();
                                       widget.logger.loggerEvents.events
                                           .add(loggerEvent);
-                                      //map.update(device, (value) => DeviceConnectionState.disconnected);
+
                                       deviceMap[device] = "Disconnecting";
                                     }
                                     setState(() {
@@ -262,7 +259,6 @@ class _MonitorConnectState extends State<MonitorConnect> {
                                           ? Colors.green
                                           : Colors.white;
                                     });
-                                    //widget.callback(BleManager.instance.connectedSensors);
                                   },
                                 ),
                               )
@@ -316,7 +312,6 @@ class _MonitorConnectState extends State<MonitorConnect> {
 
   @override
   void dispose() {
-    //widget.callback()
     scanSubscription?.cancel();
     super.dispose();
   }

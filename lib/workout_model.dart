@@ -1,5 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+
+//Helper class to store polylines in database
 class PolylineList {
   final List<dynamic>? polylines;
 
