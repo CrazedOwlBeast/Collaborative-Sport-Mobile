@@ -130,37 +130,44 @@ class AppLogger {
         // Create request object and prepare headers.
         HttpClient httpClient = HttpClient();
         HttpClientRequest request = await httpClient.postUrl(Uri.parse(
-            'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/insert'));
-        request.headers.set('apiKey',
-            FlutterConfig.get('ANALYTICS_API_KEY'));
-        request.headers.contentType = ContentType('application', 'json');
+            'https://us-east-1.aws.data.mongodb-api.com/app/data-nphof/endpoint/data/v1/action/insertOne'));
+        request.headers.set('apiKey', FlutterConfig.get('ANALYTICS_API_KEY'));
+        request.headers.set("Content-Type", "application/json");
 
-        // Load a log and prepare JSON
+        // Get the last log from the list
         Map<String, dynamic> currentLog = logsToSend.last;
-        Map<String, dynamic> currentLogJson = jsonDecode(currentLog['log']);
 
-        Map<String, dynamic> body = {
-          'document': currentLogJson
+        // Decode currentLog['log'] if it's a JSON string
+        var logData = currentLog['log'];
+        if (logData is String) {
+          logData = jsonDecode(logData);
+        }
+
+        // Construct the payload
+        Map<String, dynamic> payload = {
+          "dataSource": "FitnessLog",
+          "database": "FitnessLog",
+          "collection": "Test",
+          "document": logData
         };
 
-        // Print the JSON document for testing.
-        // debugPrint(jsonEncode(body));
+        // Encode the entire payload to JSON
+        String jsonToSend = jsonEncode(payload);
+        request.add(utf8.encode(jsonToSend));
 
-        // Send the body.
-        request.write(jsonEncode(body));
-
-        // Get the response.
         HttpClientResponse response = await request.close();
         String reply = await response.transform(utf8.decoder).join();
         httpClient.close();
+        // Log response details
+        print('Response status code: ${response.statusCode}');
+        print('Response reason phrase: ${response.reasonPhrase}');
+        print('Response body: $reply');
 
-        // Delete pending log from db if status code was successfull.
+        // Delete pending log from db if status code was successful.
         if (response.statusCode == 201 || response.statusCode == 200) {
-          debugPrint(reply);
+          print("SUCCESS UPLOADING");
           WorkoutDatabase.instance.deleteLogById(currentLog['_id'] as int);
-
-        }
-        else {
+        } else {
           // Save for later if data can't be sent.
           workoutsToSend = true;
           debugPrint(response.reasonPhrase);
@@ -177,13 +184,8 @@ class AppLogger {
       workoutsToSend = false;
       sending = false;
       WorkoutDatabase.instance.deleteLogs();
-    }
-
-    // Save logs for later if app doesn't have a network connection when workout ends.
-    on Exception catch (_) {
-      workoutsToSend = true;
-      sending = false;
-      debugPrint('No network connection, saving logs for later...');
+    } catch (e) {
+      print("An error occurred: $e");
     }
   }
 }
