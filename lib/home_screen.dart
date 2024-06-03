@@ -205,8 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    _getPermissions(); // TODO: Wait for permissions before getting location. (affects first run)
-    _getUserLocation();
+    _getPermissions().then((_) {
+        _getUserLocation();
+        // Subscribe to position stream.
+        _positionStreamSubscription = Geolocator.getPositionStream(
+            locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
+            .listen(_onPositionUpdate);
+    });
+    // _getUserLocation();
 
     // Used to get device id to send to partner.
     _getDeviceInfo();
@@ -217,10 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _showSetupDialog();
     });
 
-    // Subscribe to position stream.
-    _positionStreamSubscription = Geolocator.getPositionStream(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15))
-        .listen(_onPositionUpdate);
   }
 
   // Restore saved settings from local database
@@ -306,21 +308,88 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _requestBluetoothPermissions() async {
+    // Request permission to scan for Bluetooth devices
+    var scanStatus = await Permission.bluetoothScan.request();
+    if (scanStatus.isGranted) {
+      print("Bluetooth scan permission granted.");
+    } else {
+      print("Bluetooth scan permission denied.");
+    }
+
+    // Request permission to connect to Bluetooth devices
+    var connectStatus = await Permission.bluetoothConnect.request();
+    if (connectStatus.isGranted) {
+      print("Bluetooth connect permission granted.");
+    } else {
+      print("Bluetooth connect permission denied.");
+    }
+
+    var advertiseStatus = await Permission.bluetoothAdvertise.request();
+    if (advertiseStatus.isGranted) {
+      print("Bluetooth advertise permission granted.");
+    } else {
+      print("Bluetooth advertise permission denied.");
+    }
+  }
+
   // Function to get permissions.
+  Future<void> _requestLocationPermission() async {
+    var status = await Permission.locationWhenInUse.request();
+
+    if (status.isGranted) {
+      print("Foreground location permission granted.");
+
+      var backgroundStatus = await Permission.locationAlways.request();
+      if (backgroundStatus.isGranted) {
+        print("Background location permission granted.");
+      } else {
+        print("Background location permission denied.");
+      }
+
+    } else if (status.isDenied) {
+      print("Foreground location permission denied.");
+    }
+
+    if (status.isPermanentlyDenied) {
+      openAppSettings();  // Suggest user to open app settings to change permission manually
+    }
+  }
+
+  Future<void> _requestSensorsPermission() async {
+    var status = await Permission.sensors.request();
+
+    if (status.isGranted) {
+      print("Sensors permission granted.");
+
+    } else if (status.isDenied) {
+      print("Sensors permission denied.");
+    }
+    if (status.isPermanentlyDenied) {
+      openAppSettings();  // Suggest user to open app settings to change permission manually
+    }
+  }
+
+  Future<void> _requestNearbyWifiDevicesPermission() async {
+    var status = await Permission.nearbyWifiDevices.request();
+
+    if (status.isGranted) {
+      print("NearbyWifiDevices permission granted.");
+
+    } else if (status.isDenied) {
+      print("NearbyWifiDevices permission denied.");
+    }
+    if (status.isPermanentlyDenied) {
+      openAppSettings();  // Suggest user to open app settings to change permission manually
+    }
+  }
+
   // TODO: Request permissions in app.
-  void _getPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.bluetooth,
-      Permission.bluetoothScan,
-      Permission.bluetoothConnect,
-      Permission.bluetoothAdvertise,
-      Permission.location,
-      Permission.locationAlways,
-      Permission.nearbyWifiDevices,
-      Permission.sensors,
-      Permission.locationWhenInUse,
-      //Permission.ignoreBatteryOptimizations,
-    ].request();
+  Future<void> _getPermissions() async {
+    await _requestLocationPermission();
+    await _requestBluetoothPermissions();
+    await _requestNearbyWifiDevicesPermission();
+    await _requestSensorsPermission();
   }
 
   void _getUserLocation() async {
