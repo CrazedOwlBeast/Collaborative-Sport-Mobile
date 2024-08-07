@@ -178,12 +178,12 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
     var screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.grey[850],
         body:
               Container(
                   padding: const EdgeInsets.fromLTRB(0, 75, 0, 0),
                   alignment: Alignment.bottomCenter,
-                  color: Colors.black,
+                  color: Colors.grey[850],
                   child: Column(
                       children: [
                         const FittedBox(
@@ -196,6 +196,7 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                               )
                           ),
                         ),
+                        const SizedBox(height: 5),
                         SizedBox(
                           width: screenWidth*.8,
                           height: screenHeight*.4,
@@ -212,43 +213,44 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                             polylines: widget.polylines,
                           ),
                         ),
+                        const SizedBox(height: 5),
                         Text(
                             _getStartTime(),
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 15
+                                fontSize: 27
                             )
                         ),
                         Text(
                             _getWorkoutType(),
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 15
+                                fontSize: 27
                             )
                         ),
                         Text(
                             _getDuration(),
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 15
+                                fontSize: 27
                             )
                         ),
                         Text(
                             _getDistance(),
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 15
+                                fontSize: 27
                             )
                         ),
                         Text(
                             _getPartners(),
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 15
+                                fontSize: 27
                             )
                         ),
                         Padding(
-                            padding: EdgeInsets.fromLTRB(0, screenHeight*.2, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -259,14 +261,15 @@ class _CompletedWorkoutState extends State<CompletedWorkout> {
                                         MaterialPageRoute(builder: (context) => const HomeScreen()));
                                   });
                                 },
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white38),
-                                child: const Text('Discard'),
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4F45C2)),
+                                child: const Text('Discard', style: TextStyle(color: Color(0xFFF1F1F1))),
                               ),
                               ElevatedButton(
                                 onPressed: () {
                                   _showDialog();
                                 },
-                                child: const Text('Save'),
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4F45C2)),
+                                child: const Text('Save', style: TextStyle(color: Color(0xFFF1F1F1))),
                               ),
                             ],
                           ),

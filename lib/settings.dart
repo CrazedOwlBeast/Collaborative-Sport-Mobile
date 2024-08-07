@@ -259,10 +259,11 @@ class _SettingsState extends State<Settings>
                               )))),
                   Padding(padding: EdgeInsets.all(10)),
                   ElevatedButton(
+                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(const Color(0xFF4F45C2)),),
                     onPressed: () {
                       _saveSettings();
                     },
-                    child: const Text('Save Settings'),
+                    child: const Text('Save Settings', style: TextStyle(color: Color(0xFFF1F1F1))),
                   )
                 ],
               ))

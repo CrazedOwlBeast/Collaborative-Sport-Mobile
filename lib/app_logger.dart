@@ -147,7 +147,7 @@ class AppLogger {
         Map<String, dynamic> payload = {
           "dataSource": "FitnessLog",
           "database": "FitnessLog",
-          "collection": "Test",
+          "collection": "SmartPhones",
           "document": logData
         };
 

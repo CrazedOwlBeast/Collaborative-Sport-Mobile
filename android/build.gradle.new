@@ -1,0 +1,46 @@
+buildscript {
+    ext.kotlin_version = '1.8.0'
+    ext {
+        compileSdkVersion   = 34                // or latest
+        targetSdkVersion    = 33                // or latest
+        appCompatVersion    = "1.4.2"           // or latest
+    }
+
+    repositories {
+        jcenter()
+        google()
+        maven {
+            url 'https://maven.fabric.io/public'
+        }
+        //  Add this to your project
+        maven { url 'https://dl.bintray.com/android/android-tools' }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.google.gms:google-services:4.3.13'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "${project(':background_fetch').projectDir}/libs"
+        }
+        google()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

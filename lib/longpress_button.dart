@@ -88,20 +88,20 @@ class _LongPressButtonState extends State<LongPressButton> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: screenHeight * .14,
-            height: screenHeight * .14,
+            width: screenHeight * .07,
+            height: screenHeight * .07,
             child: CircularProgressIndicator(
               strokeWidth: 6.0,
-              color: Colors.orange,
+              color: const Color(0xFF4F45C2),
               value: _progress,
             ),
           ),
           CircleAvatar(
-            radius: screenHeight * .06,
-            backgroundColor: Colors.orange,
+            radius: screenHeight * .03,
+            backgroundColor: const Color(0xFF4F45C2),
             child: Icon(
               Icons.stop,
-              size: screenHeight * .1,
+              size: screenHeight * .05,
               color: Colors.white,
             ),
           ),
